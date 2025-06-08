@@ -44,30 +44,17 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 
 ## 🚀 Usage Examples
 
-### Generate an onboarding podcast for contributors:
+### Create a new podcast:
 
 ```bash
-reporadio generate onboarding --audience contributor
+reporadio create my-podcast
 ```
 
-### Generate a usage podcast for library consumers:
+### Generate a podcast:
 
 ```bash
-reporadio generate onboarding --audience consumer
+reporadio generate my-podcast
 ```
-
-### Generate a changelog podcast from the last 7 days:
-
-```bash
-reporadio generate changelog --since "7 days ago"
-```
-
-### Inspect and generate from a remote repo (experimental):
-
-```bash
-reporadio inspect https://github.com/some/project.git
-```
-
 ---
 
 ## 🧪 What It's Great For
