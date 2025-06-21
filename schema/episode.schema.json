@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Episode Schema",
+  "description": "Schema for episode content that guides users through structured instructions, such as introducing a new project.",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The title of the episode or topic."
+    },
+    "description": {
+      "type": "string",
+      "description": "A high-level summary of what the episode covers."
+    },
+    "instructions": {
+      "type": "string",
+      "description": "Special instructions to use for this episode."
+    },
+    "voicing": {
+      "type": "string",
+      "description": "The intended tone, style, or personality of the instruction content."
+    },
+    "include": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The file paths associated with this episode."
+    }
+  },
+  "required": ["title", "description", "instructions", "voicing", "include"],
+  "additionalProperties": false
+}
