@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reporadio.com/schemas/chatlog.json",
+  "title": "Chat Log",
+  "description": "Schema for chat log entries in reporadio-cli",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the chat log was created"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      },
+      "description": "Array of chat entries"
+    }
+  },
+  "required": ["version", "created_at", "entries"],
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the entry"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the entry was created"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["user", "assistant", "system"],
+          "description": "Who sent the message"
+        },
+        "content": {
+          "type": "string",
+          "description": "The message content"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Token count for this entry"
+            },
+            "model": {
+              "type": "string",
+              "description": "AI model used (if applicable)"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": ["id", "timestamp", "role", "content"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
