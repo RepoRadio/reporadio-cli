@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Onboarding Step Schema",
+  "description": "Schema for onboarding content that guides users through structured instructions, such as introducing a new project.",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The title of the onboarding step or topic."
+    },
+    "description": {
+      "type": "string",
+      "description": "A high-level summary of what the onboarding step covers."
+    },
+    "instructions": {
+      "type": "string",
+      "description": "Special instructions to use for this onboarding step."
+    },
+    "voicing": {
+      "type": "string",
+      "description": "The intended tone, style, or personality of the instruction content."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "onboarding",
+        "changelog"
+      ],
+      "description": "The type of content - either onboarding or changelog."
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "instructions",
+    "type"
+  ],
+  "additionalProperties": false
+}
