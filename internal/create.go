@@ -334,6 +334,11 @@ func extractProjectInformation(client *openai.Client, messages []openai.ChatComp
 		return nil, fmt.Errorf("error extracting project data: %w", err)
 	}
 
+	// Check that Choices is not empty array
+	if len(extractionResp.Choices) == 0 {
+		return nil, fmt.Errorf("no choices returned from OpenAI for project extraction")
+	}
+
 	err = schema.Unmarshal(extractionResp.Choices[0].Message.Content, &series)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling project data: %w", err)
