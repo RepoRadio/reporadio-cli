@@ -13,6 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const RepoRadioDir = ".reporadio"
+
 // ConversationManager manages an interactive conversation with error recovery
 type ConversationManager struct {
 	client     *openai.Client
@@ -349,13 +351,12 @@ func extractProjectInformation(client *openai.Client, messages []openai.ChatComp
 
 func createProjectStructure(projectName string, series *Series, chat *ChatLog) error {
 	// Create .reporadio directory
-	reporadioDir := ".reporadio"
-	if err := os.MkdirAll(reporadioDir, 0755); err != nil {
+	if err := os.MkdirAll(RepoRadioDir, 0755); err != nil {
 		return err
 	}
 
 	// Create project directory
-	projectDir := filepath.Join(reporadioDir, projectName)
+	projectDir := filepath.Join(RepoRadioDir, projectName)
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		return err
 	}
