@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"github.com/spf13/cobra"
@@ -21,5 +21,5 @@ func Execute() error {
 
 func init() {
 	// Global flags can be added here
+	rootCmd.AddCommand(createCmd)
 }
-
