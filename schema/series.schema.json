@@ -33,7 +33,8 @@
     "title",
     "description",
     "instructions",
-    "type"
+    "type",
+    "voicing"
   ],
   "additionalProperties": false
 }
