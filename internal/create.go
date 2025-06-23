@@ -11,6 +11,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 const RepoRadioDir = ".reporadio"
@@ -224,7 +225,7 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Create project structure
-	if err := createProjectStructure(podcastName, series, chatLog); err != nil {
+	if err := createProjectStructure(podcastName, series, chatLog, client, conversationManager.GetMessages()); err != nil {
 		return fmt.Errorf("error creating project structure: %w", err)
 	}
 
@@ -240,25 +241,6 @@ func init() {
 	// TODO: Add specific flags as needed
 }
 
-// loadPromptFromFile reads the system prompt from a file
-func loadPromptFromFile(filename string) (string, error) {
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-
-	// Remove the HTML comment at the beginning if present
-	contentStr := string(content)
-	lines := strings.Split(contentStr, "\n")
-
-	// Skip the first line if it's an HTML comment
-	if len(lines) > 0 && strings.HasPrefix(strings.TrimSpace(lines[0]), "<!--") {
-		lines = lines[1:]
-	}
-
-	return strings.Join(lines, "\n"), nil
-}
-
 // loadReadmeContent reads and returns the content of README.md
 func loadReadmeContent() (string, error) {
 	content, err := os.ReadFile("README.md")
@@ -268,21 +250,28 @@ func loadReadmeContent() (string, error) {
 	return string(content), nil
 }
 
-// getSystemPrompt returns the system prompt, either from file or default
+// getSystemPrompt returns the system prompt using the template system
 func getSystemPrompt() string {
-	var prompt string
-
-	// Try to load from PROMPT.md file first
-	if p, err := loadPromptFromFile("PROMPT.md"); err == nil && strings.TrimSpace(p) != "" {
-		prompt = strings.TrimSpace(p)
-	} else {
-		// Fallback to default prompt
-		prompt = "You are a helpful assistant."
+	promptManager, err := NewPromptManager()
+	if err != nil {
+		// Fallback to default prompt if template loading fails
+		return "You are a helpful assistant."
 	}
 
-	// Add README content to provide context about the project
+	// Prepare template data
+	data := struct {
+		ReadmeContent string
+	}{}
+
+	// Load README content if available
 	if readmeContent, err := loadReadmeContent(); err == nil {
-		prompt += "\n\nProject README:\n" + readmeContent
+		data.ReadmeContent = readmeContent
+	}
+
+	prompt, err := promptManager.Execute("system_prompt.tmpl", data)
+	if err != nil {
+		// Fallback to default prompt if template execution fails
+		return "You are a helpful assistant."
 	}
 
 	return prompt
@@ -290,22 +279,27 @@ func getSystemPrompt() string {
 
 // getChatResponse sends a message to OpenAI and returns the response
 func getChatResponse(client *openai.Client, messages []openai.ChatCompletionMessage) (string, error) {
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model:    openai.GPT4o,
-			Messages: messages,
-		},
-	)
+	request := openai.ChatCompletionRequest{
+		Model:    openai.GPT4o,
+		Messages: messages,
+	}
+
+	DebugOpenAIRequest(nil, messages, string(openai.GPT4o))
+
+	resp, err := client.CreateChatCompletion(context.Background(), request)
 
 	if err != nil {
+		Debugf(nil, "OpenAI API error: %v", err)
 		return "", err
 	}
+
+	DebugOpenAIResponse(nil, resp)
 
 	if len(resp.Choices) > 0 {
 		return resp.Choices[0].Message.Content, nil
 	}
 
+	Debug(nil, "No response choices returned from OpenAI")
 	return "", fmt.Errorf("no response from OpenAI")
 }
 
@@ -317,11 +311,22 @@ func extractProjectInformation(client *openai.Client, messages []openai.ChatComp
 		return nil, fmt.Errorf("schema generation error: %w", err)
 	}
 
+	// Get extraction prompt from template
+	promptManager, err := NewPromptManager()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create prompt manager: %w", err)
+	}
+
+	extractionPrompt, err := promptManager.Execute("extract_project_info.tmpl", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
+
 	extractionResp, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
 		Model: openai.GPT4oMini,
 		Messages: append(messages, openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
-			Content: "Based on our conversation, extract the project information including name, description, tags, and author.",
+			Content: extractionPrompt,
 		}),
 		ResponseFormat: &openai.ChatCompletionResponseFormat{
 			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
@@ -349,23 +354,136 @@ func extractProjectInformation(client *openai.Client, messages []openai.ChatComp
 	return &series, nil
 }
 
-func createProjectStructure(projectName string, series *Series, chat *ChatLog) error {
+// extractEpisodes extracts episodes from conversation and repository context
+func extractEpisodes(client *openai.Client, messages []openai.ChatCompletionMessage, scanResult *ScanResult) ([]Episode, error) {
+	// Create context message with directory structure
+	var contextBuilder strings.Builder
+	contextBuilder.WriteString("Repository Structure:\n")
+	contextBuilder.WriteString(fmt.Sprintf("Project Type: %s\n", scanResult.ProjectType))
+
+	if scanResult.ReadmePath != "" {
+		contextBuilder.WriteString(fmt.Sprintf("README: %s\n", scanResult.ReadmePath))
+	}
+
+	contextBuilder.WriteString("\nFiles:\n")
+	for _, file := range scanResult.Files {
+		contextBuilder.WriteString(fmt.Sprintf("- %s (%s, %d bytes)\n", file.Path, file.Extension, file.Size))
+	}
+
+	// Get extraction prompt from template
+	promptManager, err := NewPromptManager()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create prompt manager: %w", err)
+	}
+
+	templateData := struct {
+		DirectoryStructure  string
+		ConversationContext string
+	}{
+		DirectoryStructure:  contextBuilder.String(),
+		ConversationContext: "Previous conversation context included above",
+	}
+
+	extractionPrompt, err := promptManager.Execute("extract_episodes.tmpl", templateData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	// Create episodes wrapper for schema
+	episodesWrapper := struct {
+		Episodes []Episode `json:"episodes"`
+	}{}
+	schema, err := jsonschema.GenerateSchemaForType(episodesWrapper)
+	if err != nil {
+		return nil, fmt.Errorf("schema generation error: %w", err)
+	}
+
+	// Create extraction request with repository context
+	extractionMessages := append(messages, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: extractionPrompt,
+	})
+
+	extractionResp, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		Model:    openai.GPT4oMini,
+		Messages: extractionMessages,
+		ResponseFormat: &openai.ChatCompletionResponseFormat{
+			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
+			JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
+				Name:   "episodes_extraction",
+				Schema: schema,
+				Strict: true,
+			},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error extracting episodes: %w", err)
+	}
+
+	if len(extractionResp.Choices) == 0 {
+		return nil, fmt.Errorf("no choices returned from OpenAI for episodes extraction")
+	}
+
+	var result struct {
+		Episodes []Episode `json:"episodes"`
+	}
+	err = schema.Unmarshal(extractionResp.Choices[0].Message.Content, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling episodes: %w", err)
+	}
+
+	return result.Episodes, nil
+}
+
+func createProjectStructure(projectName string, series *Series, chat *ChatLog, client *openai.Client, messages []openai.ChatCompletionMessage) error {
+	Debug(nil, "Starting project structure creation")
+	Debugf(nil, "Project name: %s", projectName)
+
 	// Create .reporadio directory
 	if err := os.MkdirAll(RepoRadioDir, 0755); err != nil {
 		return err
 	}
+	Debug(nil, "Created .reporadio directory")
 
 	// Create project directory
 	projectDir := filepath.Join(RepoRadioDir, projectName)
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		return err
 	}
+	Debugf(nil, "Created project directory: %s", projectDir)
 
-	// Create project episodes directory
-	episodesDir := filepath.Join(projectDir, "episodes")
-	if err := os.MkdirAll(episodesDir, 0755); err != nil {
-		return err
+	// Scan repository to get directory structure
+	Debug(nil, "Starting repository scan")
+	repoScanner := NewScanner()
+	scanResult, err := repoScanner.ScanRepository(".")
+	if err != nil {
+		return fmt.Errorf("failed to scan repository: %w", err)
 	}
+	Debugf(nil, "Repository scan complete - found %d files, project type: %s", len(scanResult.Files), scanResult.ProjectType)
+
+	// Extract episodes using AI with repository context
+	Debug(nil, "Starting episode extraction with OpenAI")
+	episodes, err := extractEpisodes(client, messages, scanResult)
+	if err != nil {
+		return fmt.Errorf("failed to extract episodes: %w", err)
+	}
+	Debugf(nil, "Episode extraction complete - generated %d episodes", len(episodes))
+
+	// Save all episodes as a single YAML file
+	episodesYAML, err := yaml.Marshal(struct {
+		Episodes []Episode `yaml:"episodes"`
+	}{Episodes: episodes})
+	if err != nil {
+		return fmt.Errorf("failed to marshal episodes to YAML: %w", err)
+	}
+
+	podcastPath := filepath.Join(projectDir, "podcast.yml")
+	if err := os.WriteFile(podcastPath, episodesYAML, 0644); err != nil {
+		return fmt.Errorf("failed to write podcast.yml: %w", err)
+	}
+	Debugf(nil, "Saved episodes to: %s", podcastPath)
+
+	fmt.Printf("✅ Generated %d episodes based on conversation and repository analysis\n", len(episodes))
 
 	// Save episode data as YAML
 	seriesBytes, err := series.ToYAML()
@@ -377,6 +495,7 @@ func createProjectStructure(projectName string, series *Series, chat *ChatLog) e
 	if err := os.WriteFile(episodePath, seriesBytes, 0644); err != nil {
 		return err
 	}
+	Debugf(nil, "Saved series data to: %s", episodePath)
 
 	// Save chat log
 	chatBytes, err := chat.ToYAML()
@@ -388,6 +507,8 @@ func createProjectStructure(projectName string, series *Series, chat *ChatLog) e
 	if err := os.WriteFile(chatPath, chatBytes, 0644); err != nil {
 		return err
 	}
+	Debugf(nil, "Saved chat log to: %s", chatPath)
 
+	Debug(nil, "Project structure creation complete")
 	return nil
 }

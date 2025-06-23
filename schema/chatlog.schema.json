@@ -5,14 +5,19 @@
   "description": "Schema for chat log entries in reporadio-cli",
   "type": "object",
   "properties": {
-    "version": {
+    "project_name": {
       "type": "string",
-      "description": "Schema version"
+      "description": "Name of the project/podcast"
     },
-    "created_at": {
+    "start_time": {
       "type": "string",
       "format": "date-time",
-      "description": "When the chat log was created"
+      "description": "When the chat session started"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the chat session ended"
     },
     "entries": {
       "type": "array",
@@ -22,15 +27,11 @@
       "description": "Array of chat entries"
     }
   },
-  "required": ["version", "created_at", "entries"],
+  "required": ["entries"],
   "$defs": {
     "entry": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the entry"
-        },
         "timestamp": {
           "type": "string",
           "format": "date-time",
@@ -41,27 +42,17 @@
           "enum": ["user", "assistant", "system"],
           "description": "Who sent the message"
         },
-        "content": {
+        "message": {
           "type": "string",
           "description": "The message content"
         },
-        "metadata": {
-          "type": "object",
-          "properties": {
-            "tokens": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Token count for this entry"
-            },
-            "model": {
-              "type": "string",
-              "description": "AI model used (if applicable)"
-            }
-          },
-          "additionalProperties": true
+        "step": {
+          "type": "string",
+          "enum": ["conversation", "completion", "episode"],
+          "description": "The step in the process"
         }
       },
-      "required": ["id", "timestamp", "role", "content"],
+      "required": ["timestamp", "role", "step"],
       "additionalProperties": false
     }
   },
