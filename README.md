@@ -53,7 +53,7 @@ reporadio create my-podcast
 ### Generate a podcast:
 
 ```bash
-reporadio generate my-podcast
+reporadio generate my-podcast --audio
 ```
 ---
 
