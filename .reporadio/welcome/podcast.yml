@@ -1,0 +1,37 @@
+episodes:
+    - title: 'Understanding RepoRadio: Features Overview'
+      description: Explore the core features of RepoRadio, including its CLI capabilities and potential for enhancing the developer onboarding experience.
+      instructions: Discuss how RepoRadio transforms code documentation into audio narratives. Highlight key features that make it valuable for developers.
+      voicing: informative and friendly
+      include:
+        - README.md
+        - internal/create.go
+        - internal/generate.go
+    - title: 'Installing RepoRadio: Step-by-Step Guide'
+      description: Walk through the installation process of RepoRadio, ensuring new users can set it up easily on their systems.
+      instructions: Guide listeners through obtaining the OpenAI API key and installing RepoRadio via Go, with tips for troubleshooting common installation issues.
+      voicing: informative and friendly
+      include:
+        - README.md
+    - title: Creating Your First Podcast with RepoRadio
+      description: Dive into how to create and manage your first podcast episodes using RepoRadio, including best practices for content generation and execution.
+      instructions: Share tips on creating engaging audio content from codebases and structuring episodes effectively.
+      voicing: informative and friendly
+      include:
+        - internal/create.go
+        - internal/episode.go
+    - title: 'Using Your Generated Podcasts: Practical Applications'
+      description: Learn how to utilize the generated podcasts, focusing on how to interpret the audio output and implement it into development processes.
+      instructions: Discuss the application of the narrated content in real-world scenarios, and how it can facilitate onboarding and learning.
+      voicing: informative and friendly
+      include:
+        - internal/generate.go
+        - README.md
+    - title: Maximizing Your Experience with RepoRadio
+      description: Summarize what we've learned, and share tips for ongoing usage and how to leverage RepoRadio to its fullest extent.
+      instructions: Encourage feedback and user contributions, and discuss future possibilities for RepoRadio.
+      voicing: informative and friendly
+      include:
+        - README.md
+        - internal/create.go
+        - internal/generate.go
