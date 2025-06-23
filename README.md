@@ -68,8 +68,12 @@ reporadio generate my-podcast
 
 ## 🐶 RepoRadio on RepoRadio
 
-We use RepoRadio to explain itself.
-🎧 [Listen to the onboarding podcast for this repo](https://reporad.io/onboarding)
+We use RepoRadio to explain itself:
+
+* 🎧 **Welcome podcast**: [`.reporadio/welcome/episodes/`](./.reporadio/welcome/episodes/) - Getting started guide
+* 🎧 **Contributor podcast**: [`.reporadio/contributor/episodes/`](./.reporadio/contributor/episodes/) - Development onboarding
+
+Each directory contains MP3 files and transcripts.
 
 ---
 

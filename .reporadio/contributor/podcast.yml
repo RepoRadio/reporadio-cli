@@ -1,0 +1,49 @@
+episodes:
+    - title: Introduction to RepoRadio
+      description: In this episode, we'll introduce the RepoRadio project, discussing its goals and how it aims to improve developer onboarding through audio documentation.
+      instructions: Share the project goals, its features, and the core philosophy behind RepoRadio.
+      voicing: friendly and informative
+      include:
+        - README.md
+    - title: Setting Up Your Development Environment
+      description: Learn how to set up the development environment for contributing to RepoRadio, including installing necessary tools and getting access to the OpenAI API.
+      instructions: Guide listeners through the installation process and any prerequisite setup steps.
+      voicing: friendly and informative
+      include:
+        - README.md
+    - title: Understanding the Codebase Structure
+      description: Explore the important files and folders within the RepoRadio codebase, understanding their roles and significance in the project structure.
+      instructions: Explain the purpose of key files such as go.mod for module management and the internal directory's role.
+      voicing: friendly and informative
+      include:
+        - go.mod
+        - go.sum
+        - internal/
+        - schema/
+    - title: Contributor Guidelines and Best Practices
+      description: Dive into best practices for contributor guidelines, covering standards for coding, committing, and contributing to the RepoRadio project.
+      instructions: Discuss the files that govern contributions and share common best practices.
+      voicing: friendly and informative
+      include:
+        - .gitignore
+        - Makefile
+    - title: Testing in RepoRadio
+      description: Learn about the testing framework used in RepoRadio and why testing is essential for maintaining code quality within the project.
+      instructions: Introduce testing files and explain their purpose in ensuring project stability.
+      voicing: friendly and informative
+      include:
+        - internal/create_test.go
+        - internal/debug_test.go
+    - title: Generating Audio Episodes
+      description: In this episode, we'll cover how to generate audio episodes from the RepoRadio codebase, including common usage patterns and commands.
+      instructions: Demonstrate the key commands for generating audio and explain the related code functionality.
+      voicing: friendly and informative
+      include:
+        - internal/generate.go
+        - internal/generate_test.go
+    - title: What's Next for RepoRadio?
+      description: Wrapping up the series, we'll reflect on the future of RepoRadio, the community around it, and how contributors can stay engaged and support its growth.
+      instructions: Encourage listeners to contribute and share feedback, while also discussing upcoming features.
+      voicing: friendly and informative
+      include:
+        - README.md
