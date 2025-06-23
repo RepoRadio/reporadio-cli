@@ -1,0 +1,23 @@
+Generate a podcast transcript based on the following episode information:
+
+Title: {{.Title}}
+Description: {{.Description}}
+Instructions: {{.Instructions}}
+Voicing Style: {{.Voicing}}
+
+{{if .Context}}
+Context from previous episodes:
+{{.Context}}
+{{end}}
+
+File Contents:
+{{.FileContents}}
+
+Please create an engaging podcast transcript that covers the content in the included files. The transcript should:
+1. Follow the voicing style specified
+2. Be informative and cover the key points from the files
+3. Be structured as a natural conversation or monologue
+4. Include the title as a heading
+5. Be aware of topics covered in previous episodes to avoid repetition and build upon prior knowledge
+
+Format the output as markdown. Do not wrap the output in triple backticks.
