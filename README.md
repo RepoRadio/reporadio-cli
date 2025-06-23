@@ -70,8 +70,8 @@ reporadio generate my-podcast
 
 We use RepoRadio to explain itself:
 
-* 🎧 **Welcome podcast**: [`.reporadio/welcome/episodes/`](./.reporadio/welcome/) - Getting started guide
-* 🎧 **Contributor podcast**: [`.reporadio/contributor/episodes/`](./.reporadio/contributor/) - Development onboarding
+* 🎧 **Welcome podcast**: [`.reporadio/welcome/episodes/`](./.reporadio/welcome/episodes/) - Getting started guide
+* 🎧 **Contributor podcast**: [`.reporadio/contributor/episodes/`](./.reporadio/contributor/episodes/) - Development onboarding
 
 Each directory contains MP3 files and transcripts.
 
