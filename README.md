@@ -35,7 +35,7 @@ export OPENAI_API_KEY=sk-...
 ### 📦 Install via Go
 
 ```bash
-go install github.com/reporad-io/reporadio@latest
+go install github.com/reporadio/reporadio-cli@main
 ```
 
 Make sure `$GOPATH/bin` is in your `$PATH`.
@@ -47,13 +47,13 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 ### Create a new podcast:
 
 ```bash
-reporadio create my-podcast
+reporadio-cli create my-podcast
 ```
 
 ### Generate a podcast:
 
 ```bash
-reporadio generate my-podcast --audio
+reporadio-cli generate my-podcast --audio
 ```
 ---
 
