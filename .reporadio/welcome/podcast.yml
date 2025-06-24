@@ -1,7 +1,7 @@
 episodes:
     - title: 'Understanding RepoRadio: Features Overview'
       description: Explore the core features of RepoRadio, including its CLI capabilities and potential for enhancing the developer onboarding experience.
-      instructions: Discuss how RepoRadio transforms code documentation into audio narratives. Highlight key features that make it valuable for developers.
+      instructions: Discuss how RepoRadio transforms code documentation into audio narratives. Highlight key features that make it valuable for developers. The reporadio cli executable is `reporadio-cli` once installed.
       voicing: informative and friendly
       include:
         - README.md
