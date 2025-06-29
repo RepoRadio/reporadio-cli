@@ -99,8 +99,18 @@ func TestGenerateEpisodeTranscript(t *testing.T) {
 	// Create a mock OpenAI client (we'll use nil for now and handle it in the function)
 	outputDir := filepath.Join(".reporadio", "test", "episodes")
 
+	// Create mock podcast config
+	podcastConfig := &PodcastConfig{
+		Title:        "Test Podcast",
+		Description:  "Test Description",
+		Instructions: "Test Instructions",
+		Voicing:      "friendly",
+		Type:         SeriesTypeOnboarding,
+		Episodes:     []Episode{},
+	}
+
 	// Test the function
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, "")
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "")
 
 	// For now, we expect this to fail since we don't have a real client
 	// but we want to test the file reading and structure logic

@@ -65,8 +65,18 @@ func TestGenerateEpisodeWithCommands(t *testing.T) {
 
 	outputDir := filepath.Join(tempDir, "output")
 
+	// Create mock podcast config
+	podcastConfig := &PodcastConfig{
+		Title:        "Test Podcast",
+		Description:  "Test Description",
+		Instructions: "Test Instructions",
+		Voicing:      "friendly",
+		Type:         SeriesTypeOnboarding,
+		Episodes:     []Episode{},
+	}
+
 	// Test with nil client (placeholder mode)
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, "")
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "")
 	if err != nil {
 		t.Fatalf("Failed to generate episode transcript: %v", err)
 	}
