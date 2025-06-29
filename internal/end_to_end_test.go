@@ -93,9 +93,19 @@ ls -la | head -5
 		t.Fatalf("Expected 6 commands, got %d", len(episode.Commands))
 	}
 
+	// Create mock podcast config
+	podcastConfig := &PodcastConfig{
+		Title:        "Test Podcast",
+		Description:  "Test Description",
+		Instructions: "Test Instructions",
+		Voicing:      "friendly",
+		Type:         SeriesTypeOnboarding,
+		Episodes:     []Episode{},
+	}
+
 	// Generate the episode transcript
 	outputDir := filepath.Join(tempDir, "output")
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, "30s")
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "30s")
 	if err != nil {
 		t.Fatalf("Failed to generate episode transcript: %v", err)
 	}

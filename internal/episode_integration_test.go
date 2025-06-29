@@ -48,8 +48,18 @@ func TestGenerateEpisodeTranscriptWithCommands(t *testing.T) {
 
 	outputDir := filepath.Join(tempDir, "output")
 
+	// Create mock podcast config
+	podcastConfig := &PodcastConfig{
+		Title:        "Test Podcast",
+		Description:  "Test Description",
+		Instructions: "Test Instructions",
+		Voicing:      "friendly",
+		Type:         SeriesTypeOnboarding,
+		Episodes:     []Episode{},
+	}
+
 	// Generate transcript with nil client (testing mode)
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, "")
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "")
 	if err != nil {
 		t.Fatalf("Failed to generate episode transcript: %v", err)
 	}
@@ -84,8 +94,18 @@ func TestCommandExecutionTimeout(t *testing.T) {
 	tempDir := t.TempDir()
 	outputDir := filepath.Join(tempDir, "output")
 
+	// Create mock podcast config
+	podcastConfig := &PodcastConfig{
+		Title:        "Test Podcast",
+		Description:  "Test Description",
+		Instructions: "Test Instructions",
+		Voicing:      "friendly",
+		Type:         SeriesTypeOnboarding,
+		Episodes:     []Episode{},
+	}
+
 	// This should complete without hanging (command will timeout but generation continues)
-	err := generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, "")
+	err := generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "")
 	if err != nil {
 		t.Fatalf("Episode generation should not fail due to command timeout: %v", err)
 	}

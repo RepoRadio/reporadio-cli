@@ -21,7 +21,7 @@ type Episode struct {
 	Include []string `json:"include" yaml:"include"`
 
 	// Commands contains optional shell commands to execute for dynamic content
-	Commands []string `json:"commands,omitempty" yaml:"commands,omitempty"`
+	Commands []string `json:"commands" yaml:"commands"`
 }
 
 // ToYAML converts episode to YAML bytes

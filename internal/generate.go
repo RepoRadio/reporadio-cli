@@ -15,7 +15,12 @@ import (
 
 // PodcastConfig represents the structure of a podcast.yml file
 type PodcastConfig struct {
-	Episodes []Episode `yaml:"episodes"`
+	Title        string     `yaml:"title"`
+	Description  string     `yaml:"description"`
+	Instructions string     `yaml:"instructions"`
+	Voicing      string     `yaml:"voicing"`
+	Type         SeriesType `yaml:"type"`
+	Episodes     []Episode  `yaml:"episodes"`
 }
 
 // loadPodcastConfig loads a podcast configuration from .reporadio/<name>/podcast.yml
@@ -111,7 +116,7 @@ func appendToChatContext(podcastName string, episodeNum int, title, transcript s
 }
 
 // generateEpisodeTranscript generates a transcript for a single episode
-func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string, client *openai.Client, chatEntries []map[string]interface{}, commandTimeoutFlag string) error {
+func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string, client *openai.Client, chatEntries []map[string]interface{}, podcastConfig *PodcastConfig, commandTimeoutFlag string) error {
 	Debug(nil, "Starting episode transcript generation")
 	Debugf(nil, "Episode %d: %s", episodeNum, episode.Title)
 
@@ -189,6 +194,27 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 		return fmt.Errorf("failed to create prompt manager: %w", err)
 	}
 
+	// Use episode-specific values, falling back to podcast-level values
+	title := episode.Title
+	if title == "" {
+		title = podcastConfig.Title
+	}
+
+	description := episode.Description
+	if description == "" {
+		description = podcastConfig.Description
+	}
+
+	instructions := episode.Instructions
+	if instructions == "" {
+		instructions = podcastConfig.Instructions
+	}
+
+	voicing := episode.Voicing
+	if voicing == "" {
+		voicing = podcastConfig.Voicing
+	}
+
 	templateData := struct {
 		Title         string
 		Description   string
@@ -198,10 +224,10 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 		FileContents  string
 		CommandOutput string
 	}{
-		Title:         episode.Title,
-		Description:   episode.Description,
-		Instructions:  episode.Instructions,
-		Voicing:       episode.Voicing,
+		Title:         title,
+		Description:   description,
+		Instructions:  instructions,
+		Voicing:       voicing,
 		Context:       contextBuilder.String(),
 		FileContents:  fileContents.String(),
 		CommandOutput: commandOutput,
@@ -265,7 +291,7 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 		episodeNum := i + 1
 		fmt.Printf("Generating Episode %d: %s\n", episodeNum, episode.Title)
 
-		err := generateEpisodeTranscript(episode, episodeNum, outputDir, client, chatEntries, commandTimeoutFlag)
+		err := generateEpisodeTranscript(episode, episodeNum, outputDir, client, chatEntries, config, commandTimeoutFlag)
 		if err != nil {
 			return fmt.Errorf("failed to generate episode %d: %w", episodeNum, err)
 		}

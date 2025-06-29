@@ -44,8 +44,18 @@ func TestGenerateEpisodeWithScanner(t *testing.T) {
 
 	outputDir := filepath.Join(tmpDir, "output")
 
+	// Create mock podcast config
+	podcastConfig := &PodcastConfig{
+		Title:        "Test Podcast",
+		Description:  "Test Description",
+		Instructions: "Test Instructions",
+		Voicing:      "friendly",
+		Type:         SeriesTypeOnboarding,
+		Episodes:     []Episode{},
+	}
+
 	// Generate episode transcript (without OpenAI client, so it creates placeholder)
-	err := generateEpisodeTranscript(episode, 1, outputDir, nil, nil, "")
+	err := generateEpisodeTranscript(episode, 1, outputDir, nil, nil, podcastConfig, "")
 	if err != nil {
 		t.Fatalf("generateEpisodeTranscript failed: %v", err)
 	}

@@ -41,8 +41,8 @@ func TestCreateProjectStructure(t *testing.T) {
 		t.Error("Episodes directory was not created")
 	}
 
-	if _, err := os.Stat(".reporadio/test-podcast/episode.yaml"); os.IsNotExist(err) {
-		t.Error("Episode YAML file was not created")
+	if _, err := os.Stat(".reporadio/test-podcast/podcast.yml"); os.IsNotExist(err) {
+		t.Error("Podcast YAML file was not created")
 	}
 
 	if _, err := os.Stat(".reporadio/test-podcast/chat.yaml"); os.IsNotExist(err) {

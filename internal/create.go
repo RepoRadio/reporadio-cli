@@ -469,33 +469,35 @@ func createProjectStructure(projectName string, series *Series, chat *ChatLog, c
 	}
 	Debugf(nil, "Episode extraction complete - generated %d episodes", len(episodes))
 
-	// Save all episodes as a single YAML file
-	episodesYAML, err := yaml.Marshal(struct {
-		Episodes []Episode `yaml:"episodes"`
-	}{Episodes: episodes})
+	// Create consolidated podcast config with series info and episodes
+	podcastConfig := struct {
+		Title        string     `yaml:"title"`
+		Description  string     `yaml:"description"`
+		Instructions string     `yaml:"instructions"`
+		Voicing      string     `yaml:"voicing"`
+		Type         SeriesType `yaml:"type"`
+		Episodes     []Episode  `yaml:"episodes"`
+	}{
+		Title:        series.Title,
+		Description:  series.Description,
+		Instructions: series.Instructions,
+		Voicing:      series.Voicing,
+		Type:         series.Type,
+		Episodes:     episodes,
+	}
+
+	podcastYAML, err := yaml.Marshal(podcastConfig)
 	if err != nil {
-		return fmt.Errorf("failed to marshal episodes to YAML: %w", err)
+		return fmt.Errorf("failed to marshal podcast config to YAML: %w", err)
 	}
 
 	podcastPath := filepath.Join(projectDir, "podcast.yml")
-	if err := os.WriteFile(podcastPath, episodesYAML, 0644); err != nil {
+	if err := os.WriteFile(podcastPath, podcastYAML, 0644); err != nil {
 		return fmt.Errorf("failed to write podcast.yml: %w", err)
 	}
-	Debugf(nil, "Saved episodes to: %s", podcastPath)
+	Debugf(nil, "Saved podcast config to: %s", podcastPath)
 
 	fmt.Printf("✅ Generated %d episodes based on conversation and repository analysis\n", len(episodes))
-
-	// Save episode data as YAML
-	seriesBytes, err := series.ToYAML()
-	if err != nil {
-		return err
-	}
-
-	episodePath := filepath.Join(projectDir, "episode.yaml")
-	if err := os.WriteFile(episodePath, seriesBytes, 0644); err != nil {
-		return err
-	}
-	Debugf(nil, "Saved series data to: %s", episodePath)
 
 	// Save chat log
 	chatBytes, err := chat.ToYAML()
