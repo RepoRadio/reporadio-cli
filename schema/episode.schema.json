@@ -26,6 +26,13 @@
         "type": "string"
       },
       "description": "The file paths associated with this episode."
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional shell commands to execute for dynamic content generation."
     }
   },
   "required": ["title", "description", "instructions", "voicing", "include"],

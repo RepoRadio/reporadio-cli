@@ -100,7 +100,7 @@ func TestGenerateEpisodeTranscript(t *testing.T) {
 	outputDir := filepath.Join(".reporadio", "test", "episodes")
 
 	// Test the function
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{})
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, "")
 
 	// For now, we expect this to fail since we don't have a real client
 	// but we want to test the file reading and structure logic
@@ -152,7 +152,7 @@ func TestGeneratePodcastTranscripts(t *testing.T) {
 	}
 
 	// Test the function (with nil client for testing)
-	err = generatePodcastTranscripts("test", config, nil, false)
+	err = generatePodcastTranscripts("test", config, nil, false, "")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -208,7 +208,7 @@ func TestGeneratePodcastTranscriptsWithAudio(t *testing.T) {
 	}
 
 	// Test with audio generation but no client (should handle gracefully)
-	err = generatePodcastTranscripts("test", config, nil, true)
+	err = generatePodcastTranscripts("test", config, nil, true, "")
 	if err != nil {
 		t.Fatalf("Expected no error with nil client, got %v", err)
 	}

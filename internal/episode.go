@@ -19,6 +19,9 @@ type Episode struct {
 
 	// Include contains the file paths associated with this episode
 	Include []string `json:"include" yaml:"include"`
+
+	// Commands contains optional shell commands to execute for dynamic content
+	Commands []string `json:"commands,omitempty" yaml:"commands,omitempty"`
 }
 
 // ToYAML converts episode to YAML bytes
