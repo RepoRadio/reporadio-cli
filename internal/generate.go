@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -110,7 +111,7 @@ func appendToChatContext(podcastName string, episodeNum int, title, transcript s
 }
 
 // generateEpisodeTranscript generates a transcript for a single episode
-func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string, client *openai.Client, chatEntries []map[string]interface{}) error {
+func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string, client *openai.Client, chatEntries []map[string]interface{}, commandTimeoutFlag string) error {
 	Debug(nil, "Starting episode transcript generation")
 	Debugf(nil, "Episode %d: %s", episodeNum, episode.Title)
 
@@ -144,6 +145,19 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 	}
 	Debugf(nil, "Read %d files successfully", len(resolvedPaths))
 
+	// Execute commands if any are specified
+	var commandOutput string
+	if len(episode.Commands) > 0 {
+		Debug(nil, "Executing episode commands")
+		timeout := getCommandTimeoutWithFlag(commandTimeoutFlag)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+
+		results := executeCommands(ctx, episode.Commands)
+		commandOutput = formatCommandOutput(results)
+		Debugf(nil, "Executed %d commands with %v timeout, got %d bytes of output", len(episode.Commands), timeout, len(commandOutput))
+	}
+
 	// If no client provided (for testing), just create a placeholder file
 	if client == nil {
 		transcriptPath := filepath.Join(outputDir, fmt.Sprintf("ep%d.md", episodeNum))
@@ -176,19 +190,21 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 	}
 
 	templateData := struct {
-		Title        string
-		Description  string
-		Instructions string
-		Voicing      string
-		Context      string
-		FileContents string
+		Title         string
+		Description   string
+		Instructions  string
+		Voicing       string
+		Context       string
+		FileContents  string
+		CommandOutput string
 	}{
-		Title:        episode.Title,
-		Description:  episode.Description,
-		Instructions: episode.Instructions,
-		Voicing:      episode.Voicing,
-		Context:      contextBuilder.String(),
-		FileContents: fileContents.String(),
+		Title:         episode.Title,
+		Description:   episode.Description,
+		Instructions:  episode.Instructions,
+		Voicing:       episode.Voicing,
+		Context:       contextBuilder.String(),
+		FileContents:  fileContents.String(),
+		CommandOutput: commandOutput,
 	}
 
 	prompt, err := promptManager.Execute("episode_transcript.tmpl", templateData)
@@ -226,7 +242,7 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 }
 
 // generatePodcastTranscripts generates transcripts and optionally audio for all episodes in a podcast config
-func generatePodcastTranscripts(podcastName string, config *PodcastConfig, client *openai.Client, generateAudio bool) error {
+func generatePodcastTranscripts(podcastName string, config *PodcastConfig, client *openai.Client, generateAudio bool, commandTimeoutFlag string) error {
 	Debug(nil, "Starting podcast transcript generation")
 	Debugf(nil, "Podcast: %s, Episodes: %d, Audio: %t", podcastName, len(config.Episodes), generateAudio)
 
@@ -249,7 +265,7 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 		episodeNum := i + 1
 		fmt.Printf("Generating Episode %d: %s\n", episodeNum, episode.Title)
 
-		err := generateEpisodeTranscript(episode, episodeNum, outputDir, client, chatEntries)
+		err := generateEpisodeTranscript(episode, episodeNum, outputDir, client, chatEntries, commandTimeoutFlag)
 		if err != nil {
 			return fmt.Errorf("failed to generate episode %d: %w", episodeNum, err)
 		}
@@ -317,6 +333,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 
 	// Get flags
 	generateAudio, _ := cmd.Flags().GetBool("audio")
+	commandTimeoutFlag, _ := cmd.Flags().GetString("command-timeout")
 
 	// Get OpenAI API key from environment variable
 	apiKey := os.Getenv("OPENAI_API_KEY")
@@ -328,7 +345,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	client := openai.NewClient(apiKey)
 
 	// Generate transcripts (and optionally audio) for all episodes
-	return generatePodcastTranscripts(podcastName, config, client, generateAudio)
+	return generatePodcastTranscripts(podcastName, config, client, generateAudio, commandTimeoutFlag)
 }
 
 func init() {
@@ -336,4 +353,5 @@ func init() {
 
 	// Add flags for the generate command
 	generateCmd.Flags().Bool("audio", false, "Generate audio files in addition to transcripts")
+	generateCmd.Flags().String("command-timeout", "", "Timeout for command execution (e.g., '30s', '2m', or '120' for seconds)")
 }

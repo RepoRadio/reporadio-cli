@@ -45,7 +45,7 @@ func TestGenerateEpisodeWithScanner(t *testing.T) {
 	outputDir := filepath.Join(tmpDir, "output")
 
 	// Generate episode transcript (without OpenAI client, so it creates placeholder)
-	err := generateEpisodeTranscript(episode, 1, outputDir, nil, nil)
+	err := generateEpisodeTranscript(episode, 1, outputDir, nil, nil, "")
 	if err != nil {
 		t.Fatalf("generateEpisodeTranscript failed: %v", err)
 	}

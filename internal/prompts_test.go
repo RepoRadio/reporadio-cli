@@ -33,19 +33,21 @@ func TestPromptManager(t *testing.T) {
 
 	// Test episode transcript template
 	episodeData := struct {
-		Title        string
-		Description  string
-		Instructions string
-		Voicing      string
-		Context      string
-		FileContents string
+		Title         string
+		Description   string
+		Instructions  string
+		Voicing       string
+		Context       string
+		FileContents  string
+		CommandOutput string
 	}{
-		Title:        "Test Episode",
-		Description:  "Test Description",
-		Instructions: "Test Instructions",
-		Voicing:      "Conversational",
-		Context:      "Previous episode context",
-		FileContents: "Test file contents",
+		Title:         "Test Episode",
+		Description:   "Test Description",
+		Instructions:  "Test Instructions",
+		Voicing:       "Conversational",
+		Context:       "Previous episode context",
+		FileContents:  "Test file contents",
+		CommandOutput: "=== Command: echo test ===\ntest output",
 	}
 
 	episodePrompt, err := pm.Execute("episode_transcript.tmpl", episodeData)
