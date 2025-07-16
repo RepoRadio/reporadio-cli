@@ -374,10 +374,164 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	return generatePodcastTranscripts(podcastName, config, client, generateAudio, commandTimeoutFlag)
 }
 
+// parseEpisodeNumbers parses a comma-separated list of episode numbers
+func parseEpisodeNumbers(episodesList string) ([]int, error) {
+	if episodesList == "" {
+		return []int{}, nil
+	}
+
+	parts := strings.Split(episodesList, ",")
+	episodes := make([]int, 0, len(parts))
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		var num int
+		if _, err := fmt.Sscanf(part, "%d", &num); err != nil {
+			return nil, fmt.Errorf("invalid episode number: %s", part)
+		}
+
+		if num < 1 {
+			return nil, fmt.Errorf("episode numbers must be positive: %d", num)
+		}
+
+		episodes = append(episodes, num)
+	}
+
+	return episodes, nil
+}
+
+// validateEpisodeExists checks if an episode transcript file exists
+func validateEpisodeExists(podcastName string, episodeNum int) error {
+	transcriptPath := filepath.Join(".reporadio", podcastName, "episodes", fmt.Sprintf("ep%d.md", episodeNum))
+
+	if _, err := os.Stat(transcriptPath); os.IsNotExist(err) {
+		return fmt.Errorf("episode %d transcript not found at %s", episodeNum, transcriptPath)
+	}
+
+	return nil
+}
+
+// regenerateAudioForEpisodes regenerates audio for specified episodes
+func regenerateAudioForEpisodes(podcastName string, episodes []int, client *openai.Client) error {
+	outputDir := filepath.Join(".reporadio", podcastName, "episodes")
+
+	// Validate all episodes exist before starting
+	for _, episodeNum := range episodes {
+		if err := validateEpisodeExists(podcastName, episodeNum); err != nil {
+			return err
+		}
+	}
+
+	fmt.Printf("Regenerating audio for %d episodes...\n", len(episodes))
+
+	for _, episodeNum := range episodes {
+		fmt.Printf("Generating audio for Episode %d...\n", episodeNum)
+
+		transcriptPath := filepath.Join(outputDir, fmt.Sprintf("ep%d.md", episodeNum))
+		audioPath := filepath.Join(outputDir, fmt.Sprintf("ep%d.mp3", episodeNum))
+
+		err := generateEpisodeAudio(transcriptPath, audioPath, client)
+		if err != nil {
+			return fmt.Errorf("failed to generate audio for episode %d: %w", episodeNum, err)
+		}
+
+		fmt.Printf("✓ Generated ep%d.mp3\n", episodeNum)
+	}
+
+	fmt.Printf("\nAudio regeneration complete for %d episodes in %s\n", len(episodes), outputDir)
+	return nil
+}
+
+var regenerateAudioCmd = &cobra.Command{
+	Use:   "regenerate-audio [podcast-name]",
+	Short: "Regenerate audio files from existing episode transcripts",
+	Long: `The regenerate-audio command generates audio files from existing episode transcript files (.md) 
+without regenerating the transcripts themselves. This is useful when you have manually edited 
+the transcript files and want to regenerate only the audio.
+
+Examples:
+  # Regenerate all audio files
+  reporadio regenerate-audio my-podcast
+  
+  # Regenerate specific episodes
+  reporadio regenerate-audio my-podcast --episodes 1,3,5
+  
+  # Regenerate a single episode
+  reporadio regenerate-audio my-podcast --episode 2`,
+	Args: cobra.ExactArgs(1),
+	RunE: runRegenerateAudio,
+}
+
+func runRegenerateAudio(cmd *cobra.Command, args []string) error {
+	podcastName := args[0]
+
+	// Load podcast config to get episode count
+	config, err := loadPodcastConfig(podcastName)
+	if err != nil {
+		return err
+	}
+
+	// Get flags
+	episodesList, _ := cmd.Flags().GetString("episodes")
+	singleEpisode, _ := cmd.Flags().GetInt("episode")
+
+	// Determine which episodes to regenerate
+	var episodes []int
+
+	if singleEpisode > 0 {
+		// Single episode specified
+		episodes = []int{singleEpisode}
+	} else if episodesList != "" {
+		// Multiple episodes specified
+		episodes, err = parseEpisodeNumbers(episodesList)
+		if err != nil {
+			return fmt.Errorf("error parsing episodes: %w", err)
+		}
+	} else {
+		// No episodes specified, regenerate all
+		episodes = make([]int, len(config.Episodes))
+		for i := range config.Episodes {
+			episodes[i] = i + 1
+		}
+	}
+
+	if len(episodes) == 0 {
+		return fmt.Errorf("no episodes specified for regeneration")
+	}
+
+	// Validate episode numbers are within range
+	for _, episodeNum := range episodes {
+		if episodeNum > len(config.Episodes) {
+			return fmt.Errorf("episode %d does not exist (podcast has %d episodes)", episodeNum, len(config.Episodes))
+		}
+	}
+
+	// Get OpenAI API key from environment variable
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("please set the OPENAI_API_KEY environment variable")
+	}
+
+	// Create OpenAI client
+	client := openai.NewClient(apiKey)
+
+	// Regenerate audio for specified episodes
+	return regenerateAudioForEpisodes(podcastName, episodes, client)
+}
+
 func init() {
 	rootCmd.AddCommand(generateCmd)
+	rootCmd.AddCommand(regenerateAudioCmd)
 
 	// Add flags for the generate command
 	generateCmd.Flags().Bool("audio", false, "Generate audio files in addition to transcripts")
 	generateCmd.Flags().String("command-timeout", "", "Timeout for command execution (e.g., '30s', '2m', or '120' for seconds)")
+
+	// Add flags for the regenerate-audio command
+	regenerateAudioCmd.Flags().String("episodes", "", "Comma-separated list of episode numbers (e.g., '1,3,5')")
+	regenerateAudioCmd.Flags().Int("episode", 0, "Single episode number to regenerate")
 }
