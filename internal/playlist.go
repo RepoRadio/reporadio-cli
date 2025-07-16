@@ -84,6 +84,13 @@ func generatePlaylistFile(podcastName string, config *PodcastConfig, episodeData
 
 	// Write to the playlist.json file
 	playlistPath := filepath.Join(".reporadio", podcastName, "episodes", "playlist.json")
+	
+	// Create directory if it doesn't exist
+	err = os.MkdirAll(filepath.Dir(playlistPath), 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create playlist directory: %w", err)
+	}
+	
 	err = os.WriteFile(playlistPath, jsonData, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write playlist.json: %w", err)
