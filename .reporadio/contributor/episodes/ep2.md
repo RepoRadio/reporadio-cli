@@ -1,67 +1,62 @@
 # Setting Up Your Development Environment
 
-**[Intro Music Fades Out]**
+Hello, everyone, and welcome back to another episode of RepoRadio! Today, we're diving into a crucial starting point for anyone looking to contribute to RepoRadio: setting up your development environment. Whether you're a seasoned coder or new to the world of open source, I've got you covered. So let's roll up our sleeves and get started!
 
-**Host:** Hey there, listeners! Welcome back to RepoRadio. If you joined us in our previous episode, you'll remember how we set the stage with an overview of RepoRadio's mission and features. Today, we're rolling up our sleeves and diving into the essential steps to get your development environment ready, so you can start transforming your Git repositories into captivating podcasts. I’m thrilled to guide you through this process, so let's get started!
+First things first, before you can contribute, you'll need to get your system ready. This involves installing some necessary tools and gaining access to a key component—your OpenAI API key. Let’s break it down step by step.
 
-Setting up your environment might sound daunting, but I promise you'll find it straightforward and rewarding. This episode is packed with actionable steps, so you might want to keep your terminal open and follow along. Ready? Let’s dive in!
+## Why Set Up Your Environment?
 
-**[Sound Effect: Keyboard Typing]**
+RepoRadio is a unique open-source CLI tool that transforms your Git repository into podcast episodes. Not only does this mean you'll be working with inventive tech, but it also allows you to create engaging narrated audio content directly from your codebase. Imagine having contributor onboarding episodes or change log summaries narrated to you—that's the power of RepoRadio!
 
-## Step 1: Get Your OpenAI API Key
+## Prerequisites
 
-First up, you need to secure your OpenAI API key. Head over to [OpenAI's platform](https://platform.openai.com/account/api-keys) and grab a free API key if you haven’t already. This key is crucial—it acts as your portal to the AI magic that powers RepoRadio’s audio generation.
-
-Once you've got your key, you'll want to set it in your environment. Let’s make this a breeze with a quick command:
+Before we jump into installations, you need to have an OpenAI API key. Don’t worry, it's free! Just head over to [OpenAI's website](https://platform.openai.com/account/api-keys) to grab your key. Once you have it, you’ll need to configure it as an environment variable in your terminal. Here’s the command you’ll use:
 
 ```bash
-export OPENAI_API_KEY=sk-your-api-key
+export OPENAI_API_KEY=sk-...
 ```
 
-This is your ticket to unleashing the capabilities of OpenAI within RepoRadio. Imagine it as the smart engine behind generating those delightful audio narratives!
+Just replace the "..." with your actual API key, and you’re good to go!
 
-## Step 2: Install RepoRadio via Go
+## Installing RepoRadio
 
-With your API key in place, the next step is installing RepoRadio itself. RepoRadio is developed using Go, a language loved for its simplicity and efficiency. If you haven't installed Go yet, you might want to pause and take care of that now. Once you're set, install the latest version of RepoRadio with this command:
+Now that we've got our key, let’s proceed with the installation. RepoRadio is built with Go, so make sure you have Go installed on your system. Then, run the following command to install RepoRadio via Go:
 
 ```bash
-go install github.com/reporad-io/reporadio@latest
+go install github.com/reporadio/reporadio-cli@main
 ```
 
-To ensure seamless operation, make sure that your Go binary path, usually found at `$GOPATH/bin`, is in your system’s `$PATH`. This ensures your terminal knows exactly how to execute `reporadio` commands whenever you call them.
+After installation, confirm that `$GOPATH/bin` is included in your `$PATH`. This ensures you can freely execute RepoRadio from anywhere in your terminal.
 
-**[Sound Effect: Successful Ding]**
+## How to Use RepoRadio
 
-## Step 3: Create and Generate Your Podcast
+Great! If you've followed along, your environment is set up to contribute to RepoRadio. Let’s explore a couple of usage examples, so you know how to get started with generating podcasts:
 
-Now we get to the fun and creative part! With RepoRadio installed, it’s time to create your first podcast:
+- **Creating a new podcast**: Use the command:
+  ```bash
+  reporadio-cli create my-podcast
+  ```
+  Replace "my-podcast" with whatever name you give your podcast.
 
-```bash
-reporadio create my-podcast
-```
+- **Generating a podcast**: Once you've created it, you can generate the audio content using:
+  ```bash
+  reporadio-cli generate my-podcast --audio
+  ```
 
-This command initiates everything you need. Once you’ve initialized your podcast directory, it’s time to pull the magic switch—generating the podcast itself:
+And there you have it! With these steps, you're ready to start creating engaging audio content from your repositories.
 
-```bash
-reporadio generate my-podcast
-```
+## Why You'll Love RepoRadio
 
-Here is where RepoRadio works its charm, crafting those spoken-word narratives from your repository's readme, structure, and even commit history. Whether you're looking to create an engaging change log summary, a contributor guide, or a user manual, RepoRadio is your go-to tool!
+RepoRadio isn’t just a tool; it’s a philosophy. It’s about adapting documentation to how people learn—by listening, not just reading. Whether you’re a developer switching repos, an open source maintainer enhancing onboarding, or a consultant getting to grips with unfamiliar codebases, RepoRadio has your needs covered. Plus, it’s totally free, built with Go, and powered by your OpenAI key. No hosted accounts, no lock-in—just the freedom to innovate.
 
-## Why You’ll Love RepoRadio
+## Get Involved
 
-If you're juggling multiple projects or diving into new codebases like a consultant, RepoRadio brings audio documentation to your workspace, making the experience intuitive and engaging. It’s especially great for open-source maintainers keen on enhancing community interactions or for anyone who finds listening more enriching than reading dense pages of text.
+We’re always thrilled to welcome new contributors! Whether you want to star the repo, open issues, or submit pull requests, we’re eager to hear your feedback and see how you might improve RepoRadio. Every little bit helps keep this project thriving.
 
-Not to mention, RepoRadio is free, open-source, and gives you complete control without the shackles of subscriptions—just your expertise and an API key!
+And with that, we've reached the end of today’s episode. Thanks for tuning in, and happy coding! Be sure to join us next time as we continue exploring the possibilities with RepoRadio. Until then, keep transforming those codebases into captivating audio experiences! 🎧
 
-**[Sound Effect: Applause]**
+---
 
-And that’s a wrap on today’s episode! You’re now equipped to embark on podcasting your codebase using RepoRadio. Remember, you’re not just creating documentation; you’re crafting a narrative that tells your project’s story.
+For any questions, thoughts, or if you just want to say hi, feel free to reach out on GitHub or email us at `hello@reporad.io`. 
 
-If you’re hungry for more guidance, why not delve back into some of our previous episodes, explore our README file, or even join the community on GitHub to contribute and learn?
-
-**[Outro Music Fades In]**
-
-**Host:** Thanks for joining me today on RepoRadio. We hope you enjoyed this episode and look forward to the incredible podcasts you’ll create. If this episode struck a chord, consider subscribing and leaving a review. Connect with us through GitHub or shoot us an email with any thoughts. Until next time, keep coding and happy podcasting!
-
-**[Outro Music Fades Out]**
+Stay curious and keep learning!
