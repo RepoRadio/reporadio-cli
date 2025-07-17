@@ -287,13 +287,32 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 		fmt.Printf("Audio generation enabled\n")
 	}
 
+	// Collect episode metadata for playlist generation
+	var playlistEpisodes []PlaylistEpisode
+
 	for i, episode := range config.Episodes {
 		episodeNum := i + 1
 		fmt.Printf("Generating Episode %d: %s\n", episodeNum, episode.Title)
 
-		err := generateEpisodeTranscript(episode, episodeNum, outputDir, client, chatEntries, config, commandTimeoutFlag)
-		if err != nil {
-			return fmt.Errorf("failed to generate episode %d: %w", episodeNum, err)
+		// Initialize playlist episode with basic info
+		playlistEpisode := PlaylistEpisode{
+			ID:             fmt.Sprintf("ep%d", episodeNum),
+			Title:          episode.Title,
+			Description:    episode.Description,
+			AudioFile:      fmt.Sprintf("ep%d.mp3", episodeNum),
+			TranscriptFile: fmt.Sprintf("ep%d.md", episodeNum),
+			Summary:        "",
+		}
+
+		// Generate transcript
+		transcriptErr := generateEpisodeTranscript(episode, episodeNum, outputDir, client, chatEntries, config, commandTimeoutFlag)
+		if transcriptErr != nil {
+			// Handle transcript generation error gracefully
+			fmt.Printf("⚠ Failed to generate transcript for Episode %d: %v\n", episodeNum, transcriptErr)
+			fmt.Printf("Please retry the generation for this episode.\n")
+			playlistEpisode.Summary = "Transcript generation failed"
+			playlistEpisodes = append(playlistEpisodes, playlistEpisode)
+			continue
 		}
 
 		fmt.Printf("✓ Generated ep%d.md\n", episodeNum)
@@ -302,13 +321,27 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 		transcriptPath := filepath.Join(outputDir, fmt.Sprintf("ep%d.md", episodeNum))
 		transcriptContent, err := os.ReadFile(transcriptPath)
 		if err != nil {
-			return fmt.Errorf("failed to read generated transcript: %w", err)
+			fmt.Printf("⚠ Failed to read generated transcript for Episode %d: %v\n", episodeNum, err)
+			playlistEpisode.Summary = "Failed to read transcript"
+			playlistEpisodes = append(playlistEpisodes, playlistEpisode)
+			continue
 		}
 
 		Debug(nil, "Appending to chat context")
 		err = appendToChatContext(podcastName, episodeNum, episode.Title, string(transcriptContent))
 		if err != nil {
-			return fmt.Errorf("failed to append to chat context: %w", err)
+			fmt.Printf("⚠ Failed to append to chat context for Episode %d: %v\n", episodeNum, err)
+		}
+
+		// Generate episode summary
+		fmt.Printf("Generating summary for Episode %d...\n", episodeNum)
+		summary, summaryErr := generateEpisodeSummary(client, string(transcriptContent))
+		if summaryErr != nil {
+			fmt.Printf("⚠ Failed to generate summary for Episode %d: %v\n", episodeNum, summaryErr)
+			playlistEpisode.Summary = "Summary generation failed"
+		} else {
+			playlistEpisode.Summary = summary
+			fmt.Printf("✓ Generated summary for Episode %d\n", episodeNum)
 		}
 
 		// Generate audio if requested and client is available
@@ -320,11 +353,28 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 
 			err = generateEpisodeAudio(transcriptPath, audioPath, client)
 			if err != nil {
-				return fmt.Errorf("failed to generate audio for episode %d: %w", episodeNum, err)
+				fmt.Printf("⚠ Failed to generate audio for Episode %d: %v\n", episodeNum, err)
+				// Don't include audio file in playlist if generation failed
+				playlistEpisode.AudioFile = ""
+			} else {
+				fmt.Printf("✓ Generated ep%d.mp3\n", episodeNum)
 			}
-
-			fmt.Printf("✓ Generated ep%d.mp3\n", episodeNum)
+		} else {
+			// No audio generation requested or no client available
+			playlistEpisode.AudioFile = ""
 		}
+
+		playlistEpisodes = append(playlistEpisodes, playlistEpisode)
+	}
+
+	// Generate playlist.json
+	fmt.Printf("Generating playlist.json...\n")
+	playlistErr := generatePlaylistFile(podcastName, config, playlistEpisodes)
+	if playlistErr != nil {
+		fmt.Printf("⚠ Failed to generate playlist.json: %v\n", playlistErr)
+		fmt.Printf("Please retry the generation to create the playlist file.\n")
+	} else {
+		fmt.Printf("✓ Generated playlist.json\n")
 	}
 
 	fmt.Printf("\nAll transcripts generated in %s\n", outputDir)
