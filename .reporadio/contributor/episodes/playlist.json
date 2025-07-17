@@ -1,0 +1,64 @@
+{
+  "playlist": {
+    "title": "Contributing to RepoRadio",
+    "description": "This series is focused on helping contributors get up to speed with the code and contributor guidelines.",
+    "episodes": [
+      {
+        "id": "ep1",
+        "title": "Introduction to RepoRadio",
+        "description": "In this episode, we'll introduce the RepoRadio project, discussing its goals and how it aims to improve developer onboarding through audio documentation.",
+        "audioFile": "ep1.mp3",
+        "transcriptFile": "ep1.md",
+        "summary": "The first episode of RepoRadio introduces an open source Command Line Interface (CLI) tool designed to transform Git repositories into narrated audio episodes, aiming to enhance developer onboarding and engagement through audio documentation. RepoRadio allows developers to create podcasts from codebases using a personal OpenAI API key, featuring repo analysis and narrated content creation, facilitating users who prefer audio consumption over traditional reading methods."
+      },
+      {
+        "id": "ep2",
+        "title": "Setting Up Your Development Environment",
+        "description": "Learn how to set up the development environment for contributing to RepoRadio, including installing necessary tools and getting access to the OpenAI API.",
+        "audioFile": "ep2.mp3",
+        "transcriptFile": "ep2.md",
+        "summary": "In this episode of RepoRadio, the host guides listeners through setting up their development environment to contribute to RepoRadio, an open-source CLI tool that converts Git repositories into podcast episodes. The episode provides step-by-step instructions on obtaining an OpenAI API key, installing the tool using Go, and generating podcasts, all while highlighting RepoRadio's innovative approach to making documentation more accessible and engaging through audio."
+      },
+      {
+        "id": "ep3",
+        "title": "Understanding the Codebase Structure",
+        "description": "Explore the important files and folders within the RepoRadio codebase, understanding their roles and significance in the project structure.",
+        "audioFile": "ep3.mp3",
+        "transcriptFile": "ep3.md",
+        "summary": "In this episode of RepoRadio, the host explores the critical elements of the RepoRadio codebase, emphasizing the importance of a well-structured codebase for developer navigation and collaboration. The episode highlights key components such as the `go.mod` file for dependency management, the `internal` directory for encapsulating application-specific logic, and the command execution system, illustrating how these elements contribute to an effectively organized and maintainable project."
+      },
+      {
+        "id": "ep4",
+        "title": "Contributor Guidelines and Best Practices",
+        "description": "Dive into best practices for contributor guidelines, covering standards for coding, committing, and contributing to the RepoRadio project.",
+        "audioFile": "ep4.mp3",
+        "transcriptFile": "ep4.md",
+        "summary": "In this episode of RepoRadio, host Alex discusses crucial guidelines and best practices for effective contribution to open-source projects, focusing on the importance of maintaining a clean `.gitignore` file to prevent unnecessary files from cluttering the repository, and utilizing a `Makefile` to automate common development tasks. By adhering to these practices, contributors can ensure a more organized and efficient workflow, facilitating easier collaboration and onboarding for new contributors."
+      },
+      {
+        "id": "ep5",
+        "title": "Testing in RepoRadio",
+        "description": "Learn about the testing framework used in RepoRadio and why testing is essential for maintaining code quality within the project.",
+        "audioFile": "ep5.mp3",
+        "transcriptFile": "ep5.md",
+        "summary": "In this episode of RepoRadio, host Alex explores the importance of testing in software development, discussing the framework used in their project to maintain code quality and stability. The episode delves into the roles of specific test files, such as `create_test.go` and `debug_test.go`, emphasizing their contributions to ensuring project functionality, reliability, and catching potential issues before they impact users."
+      },
+      {
+        "id": "ep6",
+        "title": "Generating Audio Episodes",
+        "description": "In this episode, we'll cover how to generate audio episodes from the RepoRadio codebase, including common usage patterns and commands.",
+        "audioFile": "ep6.mp3",
+        "transcriptFile": "ep6.md",
+        "summary": "In this episode of RepoRadio, the host discusses generating audio episodes using the RepoRadio codebase, focusing on the core `generate.go` file and its functions. Key topics include loading podcast configurations, managing context with chat logs, generating episode transcripts, transforming transcripts into audio, utilizing the command line interface, and ensuring functionality through testing."
+      },
+      {
+        "id": "ep7",
+        "title": "What's Next for RepoRadio?",
+        "description": "Wrapping up the series, we'll reflect on the future of RepoRadio, the community around it, and how contributors can stay engaged and support its growth.",
+        "audioFile": "ep7.mp3",
+        "transcriptFile": "ep7.md",
+        "summary": "In the final episode of RepoRadio, the host reflects on the podcast's journey and future prospects, emphasizing the importance of community involvement in evolving the tool, which turns Git repository documentation into audio format. The episode outlines upcoming features, encourages contributions via GitHub, and highlights RepoRadio's ongoing commitment to enhancing accessibility for developers who prefer audio learning."
+      }
+    ]
+  }
+}

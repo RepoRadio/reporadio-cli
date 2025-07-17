@@ -1,63 +1,75 @@
 # Installing RepoRadio: Step-by-Step Guide
 
-Hello there, and welcome back to another episode of RepoRadio! I hope you’re all doing wonderfully today. If you're tuning in again after our last episode, you’re probably getting excited about the possibilities RepoRadio offers for transforming your documentation into an audio format. Today, we’re going to build on what we've covered by walking through the process of installing RepoRadio on your system. So, grab a cup of coffee, sit back, and let's get started!
+**[Intro Music Fades Out]**
 
-## Getting Ready: Pre-Installation Checklist
+**Host:**  
+Hello, everyone, and welcome back to another episode of RepoRadio, the podcast where we make codebases sing—quite literally! I'm your host, Chris, and today we're diving into the nitty-gritty details of getting RepoRadio installed on your system. If you love working with code and prefer learning by listening rather than reading, you're in the right place. So, get comfortable, and let’s get RepoRadio up and running on your machine!
 
-First things first. Before we dive into the installation itself, there’s an important step to complete, which is obtaining your OpenAI API key. As some of you might remember, RepoRadio utilizes this key to power its audio generation capabilities. Don’t worry, it’s straightforward!
+## First Things First: What Is RepoRadio?
 
-Head over to the OpenAI platform at platform.openai.com and sign up for a free account if you haven’t already. Once you’re in, navigate to the API keys section and generate a new key. Keep it safe, because we’ll be using it in just a moment.
+RepoRadio is a fantastic open-source command line tool that turns your Git repository into a podcast. Yes, you heard that right! It takes the key elements of your repo—like readmes, metadata, and commit histories—and generates narrated audio episodes. Whether you’re a developer switching between repos or an open-source maintainer trying to improve onboarding, RepoRadio has got you covered, making it easier to catch up on complex codebases, earbud-style.
 
-Next, you'll want to set this API key as an environment variable on your machine. This step is crucial for RepoRadio to access the OpenAI API. Run the following command in your terminal:
+## Prerequisites: The OpenAI API Key
+
+Now, before we jump into the installation, there’s a crucial step we need to handle first: obtaining your OpenAI API key. RepoRadio is powered by OpenAI, and you’ll need your own API key to unlock all its magical, audio-generating capabilities.
+
+Here’s how to get it:
+1. Head over to the [OpenAI API Keys page](https://platform.openai.com/account/api-keys).
+2. Register for a free account if you haven’t already.
+3. Once you’re logged in, generate your API key.
+
+With your API key ready, let’s set it as an environment variable. Open your terminal and type:
 
 ```bash
 export OPENAI_API_KEY=sk-...
 ```
 
-Remember to replace `sk-...` with your actual API key. Now, we're ready to proceed to the installation.
+Remember to replace `sk-...` with your actual key!
 
 ## Installing RepoRadio via Go
 
-RepoRadio works as a command-line interface tool, and installation is nice and easy with Go. If you haven’t installed Go yet, you’ll need to do so from the official Go website. Once you have Go set up, make sure your `$GOPATH/bin` is included in your system's `$PATH` so that RepoRadio can be run from anywhere in your terminal.
-
-Now, you can install RepoRadio using the following command:
+With your API key set, it's time to install RepoRadio. This part's easy! RepoRadio is written in Go, so you’ll install it using `go install`. Enter the following command in your terminal:
 
 ```bash
-go install github.com/reporad-io/reporadio@latest
+go install github.com/reporadio/reporadio-cli@main
 ```
 
-And voila! RepoRadio is now installed on your system. To verify, just type `reporadio` in your terminal, and if everything is set up correctly, you’ll see a list of commands you can use.
+Make sure that `$GOPATH/bin` is in your `$PATH` so you can run RepoRadio from anywhere on your system. If you're not sure how to do this, check out some documentation on setting up your Go environment.
 
-## Creating and Generating Podcasts
+## Ready to Go!
 
-Okay, with RepoRadio installed, what’s next? Let’s test it out.
+Congratulations! You’ve now set up RepoRadio. You’re just moments away from generating your very first podcast from a codebase. Here’s how you start:
 
-Start by creating a new podcast project. You can do that by running:
+To create a new podcast, just type:
 
 ```bash
-reporadio create my-podcast
+reporadio-cli create my-podcast
 ```
 
-This command sets up a new podcast setup with the name "my-podcast". Feel free to replace "my-podcast" with whatever name suits your series.
-
-Once you have your podcast created, generating it is just as simple. Use this command:
+Then, to generate the audio content, use:
 
 ```bash
-reporadio generate my-podcast
+reporadio-cli generate my-podcast --audio
 ```
 
-And there you go, your very own audio documentation from your repository is ready for listening!
+And there you have it! Your repository is speaking your language—literally!
 
 ## Troubleshooting Tips
 
-Now, let's address some common issues you might encounter during installation. One of the typical stumbling blocks is related to the PATH configuration. Double-check that your `$GOPATH/bin` is in your `$PATH`, as this path is crucial for Go to locate the RepoRadio binaries.
+Before we wrap up, let’s cover common troubleshooting issues you might encounter:
+- **Issue: Command not found.** Double-check that `$GOPATH/bin` is indeed in your `$PATH`.
+- **Issue: API Key error.** Ensure your API key is correctly set and that it has the right permissions on OpenAI’s platform.
+- **Issue: Network problems.** Sometimes issues can arise due to internet connectivity, so make sure you’re connected.
 
-Another common hiccup involves the API key setup. If RepoRadio is having trouble accessing the OpenAI API, the environment variable might not be set correctly. Verify that you exported the key in the same terminal session, or consider adding the `export` command to your shell’s profile file for permanence.
+## Get Involved
 
-## Wrapping Up
+RepoRadio is a living project with a thriving community. We welcome your contributions, feedback, and new uses for the tool. Head over to our GitHub page, star the repo, or submit issues if you encounter any bugs.
 
-Well folks, there you have it! Installing RepoRadio and setting up your first podcast project can be a breeze if you follow these steps. As always, the goal of RepoRadio is to make documentation accessible in ways that suit different learning styles, whether that's reading or listening.
+And remember, we built this with a simple philosophy: Docs should adapt to how people learn, not the other way around!
 
-I hope this guide has been helpful and that you’re now ready to create your own audio documentation using RepoRadio. If you run into any trouble or have questions, don’t hesitate to reach out via our GitHub page or drop us an email. Your feedback is incredibly valuable as we continue to improve and expand RepoRadio.
+**[Outro Music Fades In]**
 
-Thanks for tuning in, and don't forget to check back for more insights and guides about making the most of your codebase documentation. Until next time, happy coding and happy listening!
+**Host:**  
+That’s all for today’s episode! Feel free to reach out at `hello@reporad.io` if you have questions or just want to share your experiences with us. Until next time, happy coding and happy listening! 
+
+**[Outro Music Fades Out]**

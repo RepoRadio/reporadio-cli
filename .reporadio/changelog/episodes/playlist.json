@@ -1,0 +1,16 @@
+{
+  "playlist": {
+    "title": "The Release Report",
+    "description": "Get an audio breakdown of the newest features and fixes in the codebase.",
+    "episodes": [
+      {
+        "id": "ep1",
+        "title": "Release Update: Latest Changes and Improvements",
+        "description": "A comprehensive overview of all changes, features, and fixes implemented since the last release.",
+        "audioFile": "ep1.mp3",
+        "transcriptFile": "ep1.md",
+        "summary": "In this episode of RepoRad.io, the hosts discuss the latest release featuring key updates such as the Playlist JSON Generation, which facilitates podcast creation, and the Claude Code GitHub Actions Workflow that automates tasks, all aimed at enhancing productivity and user experience. The release also includes significant bug fixes, performance improvements, and a few breaking changes requiring users to review their workflows, ensuring RepoRad.io remains an essential tool for developers."
+      }
+    ]
+  }
+}

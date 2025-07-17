@@ -1,0 +1,48 @@
+{
+  "playlist": {
+    "title": "Welcome to RepoRadio",
+    "description": "A narrated journey about what RepoRadio is and how to use it.",
+    "episodes": [
+      {
+        "id": "ep1",
+        "title": "Understanding RepoRadio: Features Overview",
+        "description": "Explore the core features of RepoRadio, including its CLI capabilities and potential for enhancing the developer onboarding experience.",
+        "audioFile": "ep1.mp3",
+        "transcriptFile": "ep1.md",
+        "summary": "The podcast episode provides an overview of RepoRadio, an open-source CLI tool that converts Git repositories into narrated audio podcasts, making code documentation more accessible and engaging for developers. By analyzing repository data and generating spoken-word documentation, RepoRadio enhances learning and understanding of codebases, catering to developers who prefer auditory content and offering a seamless integration into existing workflows."
+      },
+      {
+        "id": "ep2",
+        "title": "Installing RepoRadio: Step-by-Step Guide",
+        "description": "Walk through the installation process of RepoRadio, ensuring new users can set it up easily on their systems.",
+        "audioFile": "ep2.mp3",
+        "transcriptFile": "ep2.md",
+        "summary": "In this episode of RepoRadio, host Chris provides a comprehensive guide on installing and setting up RepoRadio, an open-source command line tool that converts a Git repository into narrated podcast episodes. Listeners are guided through obtaining an OpenAI API key, installing RepoRadio using Go, and troubleshooting common issues, with an emphasis on community involvement and adapting documentation to different learning styles."
+      },
+      {
+        "id": "ep3",
+        "title": "Creating Your First Podcast with RepoRadio",
+        "description": "Dive into how to create and manage your first podcast episodes using RepoRadio, including best practices for content generation and execution.",
+        "audioFile": "ep3.mp3",
+        "transcriptFile": "ep3.md",
+        "summary": "In this episode of RepoRadio, listeners are guided through the process of creating and managing a podcast centered on their codebase, utilizing features like the `ConversationManager` for smooth dialogue and error handling, and leveraging OpenAI API for intelligent responses. The episode highlights RepoRadio's ability to scan repositories for insights, enabling podcasters to produce structured, engaging content tailored to their project's context."
+      },
+      {
+        "id": "ep4",
+        "title": "Using Your Generated Podcasts: Practical Applications",
+        "description": "Learn how to utilize the generated podcasts, focusing on how to interpret the audio output and implement it into development processes.",
+        "audioFile": "ep4.mp3",
+        "transcriptFile": "ep4.md",
+        "summary": "In this episode of \"Using Your Generated Podcasts: Practical Applications,\" the host explores how developers can leverage generated podcasts to enhance various aspects of their workflow, including onboarding new developers, keeping up with project changes, and fostering learning through audio content. The episode highlights the RepoRadio tool, which converts Git repositories into engaging audio narratives, allowing for a more accessible way to consume technical documentation and updates."
+      },
+      {
+        "id": "ep5",
+        "title": "Maximizing Your Experience with RepoRadio",
+        "description": "Summarize what we've learned, and share tips for ongoing usage and how to leverage RepoRadio to its fullest extent.",
+        "audioFile": "ep5.mp3",
+        "transcriptFile": "ep5.md",
+        "summary": "In this episode of RepoRadio, listeners are guided on how to maximize their experience with the tool, which transforms Git repositories into audio content, by properly setting up the OpenAI API key and using simple commands to create personalized podcasts. The episode highlights the versatility of RepoRadio for developers, open-source maintainers, and consultants, and emphasizes community involvement and future improvements as key to its ongoing development."
+      }
+    ]
+  }
+}
