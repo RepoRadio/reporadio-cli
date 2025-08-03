@@ -7,10 +7,24 @@ It’s free forever, powered by your own OpenAI API key, and works entirely from
 
 GitHub: [https://github.com/RepoRadio/reporadio-cli](https://github.com/RepoRadio/reporadio-cli)
 
----
 
 ## ✨ What It Does
+## 🤖 Agent-Assisted Setup
 
+You can use the GitHub Copilot agent or another agentic coder to set up RepoRadio CLI automatically.
+
+**Quickstart:**
+
+1. Download the setup instructions:
+   ```bash
+   curl -O https://raw.githubusercontent.com/RepoRadio/reporadio-cli/refs/heads/main/LLM.txt
+   ```
+2. Give the `LLM.txt` file to your agent (e.g., Copilot agent) and prompt:
+   > Follow these instructions to setup reporadio-cli
+
+The agent will guide you through the setup process interactively.
+
+---
 * 🔍 Analyzes your repo (README, structure, metadata, commits)
 * 🎙️ Generates narrated audio content:
 
