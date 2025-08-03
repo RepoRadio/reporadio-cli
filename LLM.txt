@@ -1,0 +1,51 @@
+# LLM.txt for reporadio-cli
+
+This file provides guidance for you, an AI agent, working in this repository. Your goal is to help the user set up the `reporadio-cli` tool and ensure it's working correctly.
+
+## Setup and Verification Steps
+
+Follow these steps to guide the user through the setup and verification process.
+
+### 1. Check for Go Installation
+
+First, verify that Go is installed by running the following command:
+
+```bash
+go version
+```
+
+If Go is not installed, please guide the user to the official Go installation page: https://go.dev/doc/install
+
+### 2. Check for OpenAI API Key
+
+Next, ensure the user has set their OpenAI API key as an environment variable. You can remind them with this message:
+
+"You’ll need a [free OpenAI API key](https://platform.openai.com/account/api-keys). Set it as an environment variable:
+
+```bash
+export OPENAI_API_KEY=sk-...
+```
+"
+
+### 3. Install `reporadio-cli`
+
+Guide the user to install the tool with the following command:
+
+```bash
+go install github.com/reporadio/reporadio-cli@main
+```
+
+After installation, remind the user to ensure `$GOPATH/bin` is in their `$PATH`.
+
+### 4. Verify Installation
+
+Finally, verify the installation by running the help command:
+
+```bash
+reporadio-cli --help
+```
+
+If the command runs successfully, the installation is complete. You can then suggest the following next steps:
+
+*   **Create a new podcast series:** `reporadio-cli create`
+*   **Generate content for an existing series:** `reporadio-cli generate`
