@@ -38,7 +38,13 @@ export OPENAI_API_KEY=sk-...
 
 ## Code Quality
 
-### Formatting
+### Linting and Formatting
+
+- **Tool**: Trunk (includes gofmt, golangci-lint, and more)
+- **Lint Command**: `make lint` or `trunk check`
+- **Format Command**: `make format` or `trunk fmt`
+
+### Legacy Formatting
 
 - **Tool**: `gofmt`
 - **Command**: `go fmt ./...`
@@ -70,6 +76,8 @@ export OPENAI_API_KEY=sk-...
 - **Production**: `make build`
 - **Install**: `make install`
 - **Clean**: `make clean`
+- **Lint**: `make lint`
+- **Format**: `make format`
 
 ### Output Directory
 
@@ -107,7 +115,8 @@ export OPENAI_API_KEY=sk-...
 ### Requirements
 
 - All tests must pass: `go test ./...`
-- Code must be formatted: `go fmt ./...`
+- Code must be linted: `make lint`
+- Code must be formatted: `make format`
 - Build must succeed: `go build`
 
 ### Commit Message Format
