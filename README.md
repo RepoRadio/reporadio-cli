@@ -7,8 +7,8 @@ It’s free forever, powered by your own OpenAI API key, and works entirely from
 
 GitHub: [https://github.com/RepoRadio/reporadio-cli](https://github.com/RepoRadio/reporadio-cli)
 
-
 ## ✨ What It Does
+
 ## 🤖 Agent-Assisted Setup
 
 You can use the GitHub Copilot agent or another agentic coder to set up RepoRadio CLI automatically.
@@ -17,21 +17,22 @@ You can use the GitHub Copilot agent or another agentic coder to set up RepoRadi
 
 1. Download the setup instructions:
    ```bash
-   curl -O https://raw.githubusercontent.com/RepoRadio/reporadio-cli/refs/heads/main/LLM.txt
+   curl -O https://raw.githubusercontent.com/RepoRadio/reporadio-cli/refs/heads/main/LLMs.txt
    ```
-2. Give the `LLM.txt` file to your agent (e.g., Copilot agent) and prompt:
+2. Give the `LLMs.txt` file to your agent (e.g., Copilot agent) and prompt:
    > Follow these instructions to setup reporadio-cli
 
 The agent will guide you through the setup process interactively.
 
 ---
-* 🔍 Analyzes your repo (README, structure, metadata, commits)
-* 🎙️ Generates narrated audio content:
 
-  * Contributor onboarding episodes
-  * Consumer-facing getting-started guides
-  * Change log summaries
-* 🧑‍💻 Built for developers who prefer audio over reading long docs
+- 🔍 Analyzes your repo (README, structure, metadata, commits)
+- 🎙️ Generates narrated audio content:
+  - Contributor onboarding episodes
+  - Consumer-facing getting-started guides
+  - Change log summaries
+
+- 🧑‍💻 Built for developers who prefer audio over reading long docs
 
 ---
 
@@ -69,14 +70,15 @@ reporadio-cli create my-podcast
 ```bash
 reporadio-cli generate my-podcast --audio
 ```
+
 ---
 
 ## 🧪 What It's Great For
 
-* Solo developers switching between repos
-* Open source maintainers offering better onboarding
-* Consultants moving across unfamiliar codebases
-* Anyone who learns better by listening than reading
+- Solo developers switching between repos
+- Open source maintainers offering better onboarding
+- Consultants moving across unfamiliar codebases
+- Anyone who learns better by listening than reading
 
 ---
 
@@ -84,8 +86,8 @@ reporadio-cli generate my-podcast --audio
 
 We use RepoRadio to explain itself:
 
-* 🎧 **Welcome podcast**: [`.reporadio/welcome/episodes/`](./.reporadio/welcome/episodes/) - Getting started guide
-* 🎧 **Contributor podcast**: [`.reporadio/contributor/episodes/`](./.reporadio/contributor/episodes/) - Development onboarding
+- 🎧 **Welcome podcast**: [`.reporadio/welcome/episodes/`](./.reporadio/welcome/episodes/) - Getting started guide
+- 🎧 **Contributor podcast**: [`.reporadio/contributor/episodes/`](./.reporadio/contributor/episodes/) - Development onboarding
 
 Each directory contains MP3 files and transcripts.
 
@@ -105,16 +107,16 @@ No hosted accounts. No lock-in. Just a CLI and your API key.
 
 We welcome contributions, feedback, and new use cases!
 
-* Star this repo ⭐
-* Open issues 🐛
-* Submit pull requests 🛠️
+- Star this repo ⭐
+- Open issues 🐛
+- Submit pull requests 🛠️
 
 ---
 
 ## 📮 Contact
 
-* GitHub Issues: [https://github.com/RepoRadio/reporadio-cli/issues](https://github.com/RepoRadio/reporadio-cli/issues)
-* Email: `hello@reporad.io`
+- GitHub Issues: [https://github.com/RepoRadio/reporadio-cli/issues](https://github.com/RepoRadio/reporadio-cli/issues)
+- Email: `hello@reporad.io`
 
 ---
 
