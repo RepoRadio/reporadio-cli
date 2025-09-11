@@ -18,14 +18,15 @@ If Go is not installed, please guide the user to the official Go installation pa
 
 ### 2. Check for OpenAI API Key
 
-Next, ensure the user has set their OpenAI API key as an environment variable. You can remind them with this message:
-
-"You’ll need a [free OpenAI API key](https://platform.openai.com/account/api-keys). Set it as an environment variable:
+Next, ensure the user has set their OpenAI API key as an environment variable. Check that it's currently set by using this command:
 
 ```bash
-export OPENAI_API_KEY=sk-...
+echo $OPENAI_API_KEY
 ```
-"
+
+If no key is returned then remind them with this message:
+
+"You’ll need a [OpenAI API key](https://platform.openai.com/account/api-keys)."
 
 ### 3. Install `reporadio-cli`
 
