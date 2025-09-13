@@ -59,6 +59,14 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 
 ## 🚀 Usage Examples
 
+### Initialize template customization:
+
+```bash
+reporadio-cli init
+```
+
+This creates a `.reporadio/prompts/` directory with default templates that you can customize.
+
 ### Create a new podcast:
 
 ```bash
@@ -70,6 +78,38 @@ reporadio-cli create my-podcast
 ```bash
 reporadio-cli generate my-podcast --audio
 ```
+
+---
+
+## 🎨 Template Customization
+
+RepoRadio allows you to customize the AI prompts used for content generation:
+
+### 1. Initialize custom templates:
+
+```bash
+reporadio-cli init
+```
+
+This creates a `.reporadio/prompts/` directory containing the default template files.
+
+### 2. Customize templates:
+
+Edit any `.tmpl` file in `.reporadio/prompts/` to customize how content is generated:
+
+- `system_prompt.tmpl` - Main system instructions for the AI
+- `episode_transcript.tmpl` - Template for episode content
+- `extract_episodes.tmpl` - Template for extracting episodes from content
+- And more...
+
+### 3. Automatic usage:
+
+When you run `create` or `generate` commands, RepoRadio will:
+- Use your custom templates from `.reporadio/prompts/` when they exist
+- Fall back to built-in templates for any missing custom files
+- Ensure full compatibility with existing workflows
+
+This allows you to fine-tune the AI's behavior while maintaining backward compatibility.
 
 ---
 

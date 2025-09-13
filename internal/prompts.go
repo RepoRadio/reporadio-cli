@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"os"
+	"path/filepath"
 	"text/template"
 )
 
@@ -19,6 +21,14 @@ func NewPromptManager() (*PromptManager, error) {
 		templates: make(map[string]*template.Template),
 	}
 
+	// Check if custom prompts directory exists
+	customPromptsDir := filepath.Join(".reporadio", "prompts")
+	useCustomPrompts := false
+	if _, err := os.Stat(customPromptsDir); err == nil {
+		useCustomPrompts = true
+	}
+
+	// Get list of embedded templates first
 	entries, err := promptFS.ReadDir("prompts")
 	if err != nil {
 		return nil, err
@@ -30,9 +40,26 @@ func NewPromptManager() (*PromptManager, error) {
 		}
 
 		name := entry.Name()
-		content, err := promptFS.ReadFile("prompts/" + name)
-		if err != nil {
-			return nil, err
+		var content []byte
+
+		// Try to load from custom directory first if it exists
+		if useCustomPrompts {
+			customPath := filepath.Join(customPromptsDir, name)
+			if customContent, err := os.ReadFile(customPath); err == nil {
+				content = customContent
+			} else {
+				// Fallback to embedded template
+				content, err = promptFS.ReadFile("prompts/" + name)
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			// Use embedded template
+			content, err = promptFS.ReadFile("prompts/" + name)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		tmpl, err := template.New(name).Parse(string(content))
