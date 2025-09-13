@@ -389,8 +389,8 @@ func parseEpisodeNumbers(episodesList string) ([]int, error) {
 			continue
 		}
 
-		var num int
-		if _, err := fmt.Sscanf(part, "%d", &num); err != nil {
+		num, err := strconv.Atoi(part)
+		if err != nil {
 			return nil, fmt.Errorf("invalid episode number: %s", part)
 		}
 
