@@ -97,17 +97,6 @@ This is a custom template for testing.`
 		t.Fatalf("Failed to write custom system prompt: %v", err)
 	}
 
-	// Create a new custom template that doesn't exist in embedded
-	customNewTemplate := `New Custom Template
-Title: {{.Title}}
-This is a new custom template.`
-
-	customNewTemplatePath := filepath.Join(promptsDir, "custom_new.tmpl")
-	err = os.WriteFile(customNewTemplatePath, []byte(customNewTemplate), 0644)
-	if err != nil {
-		t.Fatalf("Failed to write custom new template: %v", err)
-	}
-
 	// Test prompt manager loads custom templates
 	pm, err := NewPromptManager()
 	if err != nil {
@@ -162,25 +151,6 @@ This is a new custom template.`
 		t.Error("Episode prompt is empty")
 	}
 
-	// Test new custom template
-	newTemplateData := struct {
-		Title string
-	}{
-		Title: "Custom Title",
-	}
-
-	newPrompt, err := pm.Execute("custom_new.tmpl", newTemplateData)
-	if err != nil {
-		t.Fatalf("Failed to execute new custom template: %v", err)
-	}
-
-	if !strings.Contains(newPrompt, "New Custom Template") {
-		t.Error("Should use new custom template")
-	}
-
-	if !strings.Contains(newPrompt, "Custom Title") {
-		t.Error("New custom template should process data correctly")
-	}
 }
 
 func TestPromptManagerFallbackToEmbedded(t *testing.T) {

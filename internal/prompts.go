@@ -70,42 +70,6 @@ func NewPromptManager() (*PromptManager, error) {
 		pm.templates[name] = tmpl
 	}
 
-	// If using custom prompts, also load any additional custom templates not in embedded
-	if useCustomPrompts {
-		customEntries, err := os.ReadDir(customPromptsDir)
-		if err == nil {
-			for _, entry := range customEntries {
-				if entry.IsDir() {
-					continue
-				}
-
-				name := entry.Name()
-				// Skip if we already loaded this template
-				if _, exists := pm.templates[name]; exists {
-					continue
-				}
-
-				// Only process .tmpl files
-				if filepath.Ext(name) != ".tmpl" {
-					continue
-				}
-
-				customPath := filepath.Join(customPromptsDir, name)
-				content, err := os.ReadFile(customPath)
-				if err != nil {
-					continue // Skip files we can't read
-				}
-
-				tmpl, err := template.New(name).Parse(string(content))
-				if err != nil {
-					continue // Skip templates with parse errors
-				}
-
-				pm.templates[name] = tmpl
-			}
-		}
-	}
-
 	return pm, nil
 }
 
