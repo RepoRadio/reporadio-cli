@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var initCmd = &cobra.Command{
@@ -28,6 +29,12 @@ func runInit(cmd *cobra.Command, args []string) error {
 	err = copyEmbeddedTemplates(promptsDir)
 	if err != nil {
 		return fmt.Errorf("failed to copy templates: %w", err)
+	}
+
+	// Create default create.yml file
+	err = createDefaultCreateConfig()
+	if err != nil {
+		return fmt.Errorf("failed to create create.yml: %w", err)
 	}
 
 	fmt.Printf("✅ Initialized RepoRadio configuration in %s\n", RepoRadioDir)
@@ -71,6 +78,37 @@ func copyEmbeddedTemplates(targetDir string) error {
 		if err != nil {
 			return fmt.Errorf("failed to write template %s: %w", templateName, err)
 		}
+	}
+
+	return nil
+}
+
+func createDefaultCreateConfig() error {
+	createConfigPath := filepath.Join(RepoRadioDir, "create.yml")
+
+	// Skip if file already exists
+	if _, err := os.Stat(createConfigPath); err == nil {
+		return nil
+	}
+
+	// Create default configuration
+	config := CreateConfig{
+		Include: []string{
+			"*.md",
+		},
+		Commands: []string{},
+	}
+
+	// Marshal to YAML
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %w", err)
+	}
+
+	// Write the file
+	err = os.WriteFile(createConfigPath, data, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write create.yml: %w", err)
 	}
 
 	return nil

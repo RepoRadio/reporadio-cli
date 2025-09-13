@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
@@ -84,10 +83,8 @@ func TestExecuteCommandsWithCustomTimeout(t *testing.T) {
 	commands := []string{"sleep 1"} // This should timeout
 	timeout := getCommandTimeout()
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	results := executeCommands(ctx, commands)
+	executor := NewCommandExecutorWithTimeout(timeout)
+	results := executor.ExecuteCommandsDetailed(commands)
 
 	if len(results) != 1 {
 		t.Fatalf("Expected 1 result, got %d", len(results))
@@ -99,11 +96,12 @@ func TestExecuteCommandsWithCustomTimeout(t *testing.T) {
 }
 
 func TestExecuteCommandsWithTimeoutOverride(t *testing.T) {
-	// Test that executeCommandsWithTimeoutOverride works correctly
+	// Test that custom timeout works correctly
 	commands := []string{"echo 'test'"}
 	customTimeout := 5 * time.Second
 
-	results := executeCommandsWithTimeoutOverride(commands, customTimeout)
+	executor := NewCommandExecutorWithTimeout(customTimeout)
+	results := executor.ExecuteCommandsDetailed(commands)
 
 	if len(results) != 1 {
 		t.Fatalf("Expected 1 result, got %d", len(results))

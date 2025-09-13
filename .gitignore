@@ -2,3 +2,8 @@ reporadio
 .context
 bin
 reporadio-cli
+templates
+scripts
+.claude
+memory
+specs

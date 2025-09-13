@@ -161,6 +161,175 @@ func (s *Scanner) ScanRepository(rootPath string) (*ScanResult, error) {
 	return result, nil
 }
 
+// ScanWithIncludes scans repository using include patterns
+// Empty patterns slice returns empty result, "." falls back to current behavior
+func (s *Scanner) ScanWithIncludes(rootPath string, includes []string) (*ScanResult, error) {
+	// If no includes, return empty result
+	if len(includes) == 0 {
+		return &ScanResult{
+			Files:       make([]FileInfo, 0),
+			ProjectType: "unknown",
+		}, nil
+	}
+
+	// If includes ".", fall back to regular scanning
+	if len(includes) == 1 && includes[0] == "." {
+		return s.ScanRepository(rootPath)
+	}
+
+	result := &ScanResult{
+		Files: make([]FileInfo, 0),
+	}
+
+	// Load gitignore and reporadioignore files
+	gitignores := make(map[string]*GitIgnore)
+	reporadioignores := make(map[string]*GitIgnore)
+
+	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Load gitignore files as we encounter them
+		if !info.IsDir() && info.Name() == ".gitignore" {
+			if gitignore, err := loadGitIgnoreFile(path); err == nil {
+				gitignores[filepath.Dir(path)] = gitignore
+			}
+		}
+
+		// Load reporadioignore files as we encounter them
+		if !info.IsDir() && info.Name() == ".reporadioignore" {
+			if reporadioignore, err := loadGitIgnoreFile(path); err == nil {
+				reporadioignores[filepath.Dir(path)] = reporadioignore
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to load ignore files: %w", err)
+	}
+
+	// Now scan files, applying both ignore rules and include patterns
+	err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip if ignored by either gitignore or reporadioignore
+		if s.shouldIgnorePath(path, info.IsDir(), gitignores, reporadioignores) {
+			if info.IsDir() {
+				return filepath.SkipDir // Skip entire directory
+			}
+			return nil // Skip file
+		}
+
+		// Skip directories and hidden files
+		if info.IsDir() || strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
+		// Check if file matches any include pattern
+		if s.matchesIncludePatterns(path, rootPath, includes) {
+			fileInfo := FileInfo{
+				Path:      path,
+				Extension: filepath.Ext(path),
+				Size:      info.Size(),
+			}
+			result.Files = append(result.Files, fileInfo)
+
+			// Check if this is a README file
+			if strings.ToLower(info.Name()) == "readme.md" && result.ReadmePath == "" {
+				result.ReadmePath = path
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to walk directory: %w", err)
+	}
+
+	// Detect project type
+	result.ProjectType = s.detectProjectType(result.Files)
+
+	return result, nil
+}
+
+// matchesIncludePatterns checks if a file path matches any of the include patterns
+func (s *Scanner) matchesIncludePatterns(filePath, rootPath string, includes []string) bool {
+	// Convert file path to relative path for pattern matching
+	relPath, err := filepath.Rel(rootPath, filePath)
+	if err != nil {
+		// If we can't get relative path, use absolute path
+		relPath = filePath
+	}
+
+	for _, pattern := range includes {
+		// Handle different pattern types
+		if s.matchesPattern(relPath, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// matchesPattern checks if a file path matches a specific glob pattern
+func (s *Scanner) matchesPattern(filePath, pattern string) bool {
+	// Try direct match first
+	if matched, _ := filepath.Match(pattern, filePath); matched {
+		return true
+	}
+
+	// Try matching just the filename
+	if matched, _ := filepath.Match(pattern, filepath.Base(filePath)); matched {
+		return true
+	}
+
+	// Handle recursive patterns (**/)
+	if strings.Contains(pattern, "**/") {
+		// Convert ** pattern to regular glob pattern
+		parts := strings.Split(pattern, "**/")
+		if len(parts) == 2 {
+			prefix := parts[0]
+			suffix := parts[1]
+
+			// Check if the file path contains the prefix and matches the suffix
+			if prefix == "" || strings.HasPrefix(filePath, prefix) {
+				// Remove prefix and check if remaining path matches suffix
+				remainingPath := filePath
+				if prefix != "" {
+					if strings.HasPrefix(filePath, prefix) {
+						remainingPath = strings.TrimPrefix(filePath, prefix)
+						remainingPath = strings.TrimPrefix(remainingPath, string(filepath.Separator))
+					} else {
+						return false
+					}
+				}
+
+				// Try direct match on remaining path
+				if matched, _ := filepath.Match(suffix, remainingPath); matched {
+					return true
+				}
+
+				// Try matching any subdirectory path
+				pathParts := strings.Split(remainingPath, string(filepath.Separator))
+				for i := 0; i < len(pathParts); i++ {
+					subPath := filepath.Join(pathParts[i:]...)
+					if matched, _ := filepath.Match(suffix, subPath); matched {
+						return true
+					}
+				}
+			}
+		}
+	}
+
+	return false
+}
+
 // shouldIgnorePath checks if a path should be ignored based on all applicable gitignore and reporadioignore files
 func (s *Scanner) shouldIgnorePath(path string, isDir bool, gitignores map[string]*GitIgnore, reporadioignores map[string]*GitIgnore) bool {
 	// Check all gitignore files that could apply to this path

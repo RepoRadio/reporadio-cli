@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,11 +20,9 @@ func TestIntegrateCommandOutput(t *testing.T) {
 	}
 
 	// Execute commands and get formatted output
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	results := executeCommands(ctx, episode.Commands)
-	commandOutput := formatCommandOutput(results)
+	executor := NewCommandExecutorWithTimeout(30 * time.Second)
+	results := executor.ExecuteCommandsDetailed(episode.Commands)
+	commandOutput := executor.FormatCommandOutput(results)
 
 	// Verify command output is formatted correctly
 	if !strings.Contains(commandOutput, "=== Command: echo 'test output' ===") {

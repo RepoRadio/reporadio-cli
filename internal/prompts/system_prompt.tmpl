@@ -41,5 +41,30 @@ Here's information about the project:
 {{.ReadmeContent}}
 {{end}}
 
+{{if .CommandOutput}}
+Here's output from setup commands that were run:
+
+{{range $command, $output := .CommandOutput}}
+Command: {{$command}}
+Output:
+{{$output}}
+
+{{end}}
+{{end}}
+
+{{if .FileContent}}
+Here are the project files that were included:
+
+{{range $file, $content := .FileContent}}
+{{if ne $file "README.md"}}
+File: {{$file}}
+```
+{{$content}}
+```
+
+{{end}}
+{{end}}
+{{end}}
+
 Be conversational and collaborative. Ask follow-up questions to better understand what kind of podcast content would be most valuable.
 Ask me one question at a time until you have enough context. 

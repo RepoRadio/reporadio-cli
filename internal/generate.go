@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -156,11 +155,10 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 	if len(episode.Commands) > 0 {
 		Debug(nil, "Executing episode commands")
 		timeout := getCommandTimeoutWithFlag(commandTimeoutFlag)
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
+		executor := NewCommandExecutorWithTimeout(timeout)
 
-		results := executeCommands(ctx, episode.Commands)
-		commandOutput = formatCommandOutput(results)
+		results := executor.ExecuteCommandsDetailed(episode.Commands)
+		commandOutput = executor.FormatCommandOutput(results)
 		Debugf(nil, "Executed %d commands with %v timeout, got %d bytes of output", len(episode.Commands), timeout, len(commandOutput))
 	}
 

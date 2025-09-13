@@ -13,11 +13,22 @@ func TestPromptManager(t *testing.T) {
 		t.Fatalf("Failed to create prompt manager: %v", err)
 	}
 
-	// Test system prompt template
+	// Test system prompt template with new structure
 	data := struct {
 		ReadmeContent string
+		CommandOutput map[string]string
+		FileContent   map[string]string
+		Mode          string
 	}{
 		ReadmeContent: "Test README content",
+		CommandOutput: map[string]string{
+			"echo test": "test output",
+		},
+		FileContent: map[string]string{
+			"README.md": "Test README content",
+			"main.go":   "package main",
+		},
+		Mode: "explicit",
 	}
 
 	prompt, err := pm.Execute("system_prompt.tmpl", data)
@@ -31,6 +42,14 @@ func TestPromptManager(t *testing.T) {
 
 	if !strings.Contains(prompt, "Test README content") {
 		t.Error("System prompt should contain README content")
+	}
+
+	if !strings.Contains(prompt, "echo test") {
+		t.Error("System prompt should contain command output")
+	}
+
+	if !strings.Contains(prompt, "package main") {
+		t.Error("System prompt should contain file content")
 	}
 
 	// Test episode transcript template

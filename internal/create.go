@@ -194,8 +194,28 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	// Create chat log
 	chatLog := NewChatLog(podcastName)
 
-	// Get system prompt
-	systemPrompt := getSystemPrompt()
+	// Load configuration and build context
+	config, mode, err := loadCreateConfigWithFallback()
+	if err != nil {
+		return fmt.Errorf("failed to load create.yml configuration: %w\n\nTip: Check that your .reporadio/create.yml file has valid YAML syntax", err)
+	}
+
+	fmt.Printf("📋 Using configuration mode: %s\n", mode)
+	if mode == ModeExplicit {
+		fmt.Printf("📁 Including %d file patterns\n", len(config.Include))
+		fmt.Printf("⚡ Running %d setup commands\n", len(config.Commands))
+	}
+
+	contextBuilder := NewContextBuilder()
+	context, err := contextBuilder.BuildCreateContext(config, mode)
+	if err != nil {
+		return fmt.Errorf("failed to build context for podcast creation: %w\n\nThis may be due to:\n- Command execution failures\n- File access issues\n- Invalid include patterns", err)
+	}
+
+	fmt.Printf("✅ Context built with %d files and %d command outputs\n", len(context.FileContent), len(context.CommandOutput))
+
+	// Get system prompt with new context
+	systemPrompt := getSystemPromptWithContext(context)
 
 	// Create conversation manager
 	conversationManager := NewConversationManager(client, scanner, chatLog, systemPrompt)
@@ -241,37 +261,58 @@ func init() {
 	// TODO: Add specific flags as needed
 }
 
-// loadReadmeContent reads and returns the content of README.md
-func loadReadmeContent() (string, error) {
-	content, err := os.ReadFile("README.md")
-	if err != nil {
-		return "", err
+// loadCreateConfigWithFallback loads create.yml config or returns default config with appropriate mode
+func loadCreateConfigWithFallback() (*CreateConfig, string, error) {
+	loader := NewConfigLoader()
+
+	// Try to load create.yml
+	config, mode, err := loader.LoadCreateConfig()
+	if err == nil {
+		return config, mode, nil
 	}
-	return string(content), nil
+
+	// If file not found, use default config
+	if os.IsNotExist(err) || err == ErrConfigNotFound {
+		contextBuilder := NewContextBuilder()
+		defaultConfig := contextBuilder.GetDefaultConfig()
+		return defaultConfig, ModeDefault, nil
+	}
+
+	// Other errors (parsing, etc.) should be returned
+	return nil, "", err
 }
 
-// getSystemPrompt returns the system prompt using the template system
-func getSystemPrompt() string {
+// getSystemPromptWithContext returns the system prompt using the new context system
+func getSystemPromptWithContext(context *CreateContext) string {
 	promptManager, err := NewPromptManager()
 	if err != nil {
-		// Fallback to default prompt if template loading fails
-		return "You are a helpful assistant."
+		fmt.Printf("⚠️  Warning: Failed to load prompt templates: %v\n", err)
+		fmt.Println("📝 Using basic fallback prompt")
+		return "You are a helpful assistant for creating podcast content from code repositories."
 	}
 
-	// Prepare template data
+	// Prepare template data with rich context
 	data := struct {
 		ReadmeContent string
-	}{}
+		CommandOutput map[string]string
+		FileContent   map[string]string
+		Mode          string
+	}{
+		Mode:          context.Mode,
+		CommandOutput: context.CommandOutput,
+		FileContent:   context.FileContent,
+	}
 
-	// Load README content if available
-	if readmeContent, err := loadReadmeContent(); err == nil {
+	// For backward compatibility, provide ReadmeContent if README.md is available
+	if readmeContent, exists := context.FileContent["README.md"]; exists {
 		data.ReadmeContent = readmeContent
 	}
 
 	prompt, err := promptManager.Execute("system_prompt.tmpl", data)
 	if err != nil {
-		// Fallback to default prompt if template execution fails
-		return "You are a helpful assistant."
+		fmt.Printf("⚠️  Warning: Failed to execute prompt template: %v\n", err)
+		fmt.Println("📝 Using basic fallback prompt")
+		return "You are a helpful assistant for creating podcast content from code repositories."
 	}
 
 	return prompt
