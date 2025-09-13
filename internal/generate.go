@@ -477,7 +477,10 @@ func runRegenerateAudio(cmd *cobra.Command, args []string) error {
 
 	// Get flags
 	episodesList, _ := cmd.Flags().GetString("episodes")
-	singleEpisode, _ := cmd.Flags().GetInt("episode")
+	singleEpisode, err := cmd.Flags().GetInt("episode")
+	if err != nil {
+		return fmt.Errorf("failed to retrieve 'episode' flag: %w", err)
+	}
 
 	// Determine which episodes to regenerate
 	var episodes []int
