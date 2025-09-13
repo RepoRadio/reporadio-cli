@@ -100,12 +100,12 @@ func TestPlaylistStructure(t *testing.T) {
 func TestGenerateEpisodeSummaryWithNilClient(t *testing.T) {
 	// Test generateEpisodeSummary with nil client
 	transcript := "This is a test transcript for episode summary generation."
-	
+
 	summary, err := generateEpisodeSummary(nil, transcript)
 	if err != nil {
 		t.Fatalf("Expected no error with nil client, got %v", err)
 	}
-	
+
 	expectedSummary := "Summary unavailable (no OpenAI client)"
 	if summary != expectedSummary {
 		t.Errorf("Expected summary '%s', got '%s'", expectedSummary, summary)
@@ -116,15 +116,15 @@ func TestGenerateEpisodeSummaryTextCleanup(t *testing.T) {
 	// Test that the summary cleanup works correctly
 	// We can't easily test the OpenAI API without mocking, but we can test the text processing logic
 	// by examining the function's behavior with different inputs
-	
+
 	// Test with nil client to verify the basic flow
 	transcript := "This is a test transcript with\nmultiple lines\nand whitespace.   "
-	
+
 	summary, err := generateEpisodeSummary(nil, transcript)
 	if err != nil {
 		t.Fatalf("Expected no error with nil client, got %v", err)
 	}
-	
+
 	// Verify the summary is cleaned up (no extra whitespace)
 	if strings.HasPrefix(summary, " ") || strings.HasSuffix(summary, " ") {
 		t.Error("Expected summary to be trimmed of whitespace")

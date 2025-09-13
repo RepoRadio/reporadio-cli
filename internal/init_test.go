@@ -124,7 +124,7 @@ func TestRunInitWithExistingPrompts(t *testing.T) {
 	// Verify other templates were still copied
 	otherTemplates := []string{
 		"extract_episodes.tmpl",
-		"extract_project_info.tmpl", 
+		"extract_project_info.tmpl",
 		"episode_transcript.tmpl",
 	}
 
@@ -150,7 +150,7 @@ func TestCopyEmbeddedTemplates(t *testing.T) {
 	// Verify all templates were copied
 	expectedTemplates := []string{
 		"system_prompt.tmpl",
-		"extract_episodes.tmpl", 
+		"extract_episodes.tmpl",
 		"extract_project_info.tmpl",
 		"episode_transcript.tmpl",
 	}
