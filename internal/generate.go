@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -461,7 +462,7 @@ Examples:
   reporadio regenerate-audio my-podcast --episodes 1,3,5
   
   # Regenerate a single episode
-  reporadio regenerate-audio my-podcast --episode 2`,
+  reporadio regenerate-audio my-podcast --episodes 2`,
 	Args: cobra.ExactArgs(1),
 	RunE: runRegenerateAudio,
 }
@@ -475,24 +476,17 @@ func runRegenerateAudio(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Get flags
+	// Get episodes flag
 	episodesList, err := cmd.Flags().GetString("episodes")
 	if err != nil {
 		return fmt.Errorf("failed to retrieve 'episodes' flag: %w", err)
-	}
-	singleEpisode, err := cmd.Flags().GetInt("episode")
-	if err != nil {
-		return fmt.Errorf("failed to retrieve 'episode' flag: %w", err)
 	}
 
 	// Determine which episodes to regenerate
 	var episodes []int
 
-	if singleEpisode > 0 {
-		// Single episode specified
-		episodes = []int{singleEpisode}
-	} else if episodesList != "" {
-		// Multiple episodes specified
+	if episodesList != "" {
+		// Specific episodes specified
 		episodes, err = parseEpisodeNumbers(episodesList)
 		if err != nil {
 			return fmt.Errorf("error parsing episodes: %w", err)
@@ -538,6 +532,5 @@ func init() {
 	generateCmd.Flags().String("command-timeout", "", "Timeout for command execution (e.g., '30s', '2m', or '120' for seconds)")
 
 	// Add flags for the regenerate-audio command
-	regenerateAudioCmd.Flags().String("episodes", "", "Comma-separated list of episode numbers (e.g., '1,3,5')")
-	regenerateAudioCmd.Flags().Int("episode", 0, "Single episode number to regenerate")
+	regenerateAudioCmd.Flags().String("episodes", "", "Comma-separated list of episode numbers (e.g., '1,3,5' or '2' for single episode)")
 }
