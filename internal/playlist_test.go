@@ -106,7 +106,7 @@ func TestGenerateEpisodeSummaryWithNilClient(t *testing.T) {
 		t.Fatalf("Expected no error with nil client, got %v", err)
 	}
 
-	expectedSummary := "Summary unavailable (no OpenAI client)"
+	expectedSummary := "Summary unavailable (no API client)"
 	if summary != expectedSummary {
 		t.Errorf("Expected summary '%s', got '%s'", expectedSummary, summary)
 	}
@@ -303,7 +303,7 @@ func TestGeneratePodcastTranscriptsWithPlaylist(t *testing.T) {
 	}
 
 	// Test the function (with nil client for testing)
-	err = generatePodcastTranscripts("test", config, nil, false, "")
+	err = generatePodcastTranscripts("test", config, nil, DefaultAPIConfig(), false, "")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -356,8 +356,8 @@ func TestGeneratePodcastTranscriptsWithPlaylist(t *testing.T) {
 			t.Errorf("Episode %d: expected transcript file 'ep%d.md', got '%s'", i, i+1, episode.TranscriptFile)
 		}
 		// With nil client, summary should be the unavailable message
-		if episode.Summary != "Summary unavailable (no OpenAI client)" {
-			t.Errorf("Episode %d: expected summary 'Summary unavailable (no OpenAI client)', got '%s'", i, episode.Summary)
+		if episode.Summary != "Summary unavailable (no API client)" {
+			t.Errorf("Episode %d: expected summary 'Summary unavailable (no API client)', got '%s'", i, episode.Summary)
 		}
 	}
 }
@@ -391,7 +391,7 @@ func TestGeneratePodcastTranscriptsWithPlaylistAndAudio(t *testing.T) {
 	}
 
 	// Test with audio generation but no client (should handle gracefully)
-	err = generatePodcastTranscripts("test", config, nil, true, "")
+	err = generatePodcastTranscripts("test", config, nil, DefaultAPIConfig(), true, "")
 	if err != nil {
 		t.Fatalf("Expected no error with nil client, got %v", err)
 	}

@@ -179,14 +179,21 @@ It guides you through the process of creating episodes based on your codebase.`,
 func runCreate(cmd *cobra.Command, args []string) error {
 	podcastName := args[0]
 
-	// Get OpenAI API key from environment variable
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("please set the OPENAI_API_KEY environment variable")
+	// Get API configuration flags
+	baseURL, _ := cmd.Flags().GetString("api-base-url")
+	apiKey, _ := cmd.Flags().GetString("api-key")
+	chatModel, _ := cmd.Flags().GetString("chat-model")
+	ttsModel, _ := cmd.Flags().GetString("tts-model")
+	ttsVoice, _ := cmd.Flags().GetString("tts-voice")
+
+	// Load API configuration
+	apiConfig, err := LoadAPIConfig(baseURL, apiKey, chatModel, ttsModel, ttsVoice)
+	if err != nil {
+		return fmt.Errorf("failed to load API configuration: %w", err)
 	}
 
-	// Create OpenAI client
-	client := openai.NewClient(apiKey)
+	// Create OpenAI-compatible client
+	client := apiConfig.NewClient()
 
 	// Create a scanner to read user input
 	scanner := bufio.NewScanner(os.Stdin)
@@ -213,19 +220,19 @@ func runCreate(cmd *cobra.Command, args []string) error {
 	chatLog.Complete()
 
 	// Extract project information with error recovery
-	series, err := extractProjectInformation(client, conversationManager.GetMessages())
+	series, err := extractProjectInformationWithConfig(client, apiConfig, conversationManager.GetMessages())
 	if err != nil {
 		fmt.Println("🔄 Retrying project information extraction...")
 
 		// Retry extraction with error context
-		series, err = extractProjectInformation(client, conversationManager.GetMessages())
+		series, err = extractProjectInformationWithConfig(client, apiConfig, conversationManager.GetMessages())
 		if err != nil {
 			return fmt.Errorf("failed to extract project information: %w", err)
 		}
 	}
 
 	// Create project structure
-	if err := createProjectStructure(podcastName, series, chatLog, client, conversationManager.GetMessages()); err != nil {
+	if err := createProjectStructure(podcastName, series, chatLog, client, apiConfig, conversationManager.GetMessages()); err != nil {
 		return fmt.Errorf("error creating project structure: %w", err)
 	}
 
@@ -238,7 +245,11 @@ func runCreate(cmd *cobra.Command, args []string) error {
 
 func init() {
 	// Add flags for the create command
-	// TODO: Add specific flags as needed
+	createCmd.Flags().String("api-base-url", "", "Base URL for OpenAI-compatible API (env: OPENAI_BASE_URL)")
+	createCmd.Flags().String("api-key", "", "API key for authentication (env: OPENAI_API_KEY)")
+	createCmd.Flags().String("chat-model", "", "Model for chat completions (env: OPENAI_CHAT_MODEL)")
+	createCmd.Flags().String("tts-model", "", "Model for text-to-speech (env: OPENAI_TTS_MODEL)")
+	createCmd.Flags().String("tts-voice", "", "Voice for text-to-speech (env: OPENAI_TTS_VOICE)")
 }
 
 // loadReadmeContent reads and returns the content of README.md
@@ -277,19 +288,27 @@ func getSystemPrompt() string {
 	return prompt
 }
 
-// getChatResponse sends a message to OpenAI and returns the response
+// getChatResponse sends a message to OpenAI and returns the response (legacy function for backward compatibility)
 func getChatResponse(client *openai.Client, messages []openai.ChatCompletionMessage) (string, error) {
+	// Use default API config for backward compatibility
+	apiConfig := DefaultAPIConfig()
+	apiConfig.ChatModel = string(openai.GPT4o)
+	return getChatResponseWithConfig(client, apiConfig, messages)
+}
+
+// getChatResponseWithConfig sends a message to OpenAI-compatible API and returns the response
+func getChatResponseWithConfig(client *openai.Client, apiConfig *APIConfig, messages []openai.ChatCompletionMessage) (string, error) {
 	request := openai.ChatCompletionRequest{
-		Model:    openai.GPT4o,
+		Model:    apiConfig.GetChatModel(),
 		Messages: messages,
 	}
 
-	DebugOpenAIRequest(nil, messages, string(openai.GPT4o))
+	DebugOpenAIRequest(nil, messages, apiConfig.GetChatModel())
 
 	resp, err := client.CreateChatCompletion(context.Background(), request)
 
 	if err != nil {
-		Debugf(nil, "OpenAI API error: %v", err)
+		Debugf(nil, "Chat completion API error: %v", err)
 		return "", err
 	}
 
@@ -299,12 +318,19 @@ func getChatResponse(client *openai.Client, messages []openai.ChatCompletionMess
 		return resp.Choices[0].Message.Content, nil
 	}
 
-	Debug(nil, "No response choices returned from OpenAI")
-	return "", fmt.Errorf("no response from OpenAI")
+	Debug(nil, "No response choices returned from chat completion API")
+	return "", fmt.Errorf("no response from chat completion API")
 }
 
-// extractProjectInformation extracts project information from conversation messages
+// extractProjectInformation extracts project information from conversation messages (legacy function)
 func extractProjectInformation(client *openai.Client, messages []openai.ChatCompletionMessage) (*Series, error) {
+	// Use default API config for backward compatibility
+	apiConfig := DefaultAPIConfig()
+	return extractProjectInformationWithConfig(client, apiConfig, messages)
+}
+
+// extractProjectInformationWithConfig extracts project information from conversation messages with API config
+func extractProjectInformationWithConfig(client *openai.Client, apiConfig *APIConfig, messages []openai.ChatCompletionMessage) (*Series, error) {
 	var series Series
 	schema, err := jsonschema.GenerateSchemaForType(series)
 	if err != nil {
@@ -323,7 +349,7 @@ func extractProjectInformation(client *openai.Client, messages []openai.ChatComp
 	}
 
 	extractionResp, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
-		Model: openai.GPT4oMini,
+		Model: apiConfig.GetChatModel(),
 		Messages: append(messages, openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
 			Content: extractionPrompt,
@@ -354,8 +380,15 @@ func extractProjectInformation(client *openai.Client, messages []openai.ChatComp
 	return &series, nil
 }
 
-// extractEpisodes extracts episodes from conversation and repository context
+// extractEpisodes extracts episodes from conversation and repository context (legacy function)
 func extractEpisodes(client *openai.Client, messages []openai.ChatCompletionMessage, scanResult *ScanResult) ([]Episode, error) {
+	// Use default API config for backward compatibility
+	apiConfig := DefaultAPIConfig()
+	return extractEpisodesWithConfig(client, apiConfig, messages, scanResult)
+}
+
+// extractEpisodesWithConfig extracts episodes from conversation and repository context with API config
+func extractEpisodesWithConfig(client *openai.Client, apiConfig *APIConfig, messages []openai.ChatCompletionMessage, scanResult *ScanResult) ([]Episode, error) {
 	// Create context message with directory structure
 	var contextBuilder strings.Builder
 	contextBuilder.WriteString("Repository Structure:\n")
@@ -405,7 +438,7 @@ func extractEpisodes(client *openai.Client, messages []openai.ChatCompletionMess
 	})
 
 	extractionResp, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
-		Model:    openai.GPT4oMini,
+		Model:    apiConfig.GetChatModel(),
 		Messages: extractionMessages,
 		ResponseFormat: &openai.ChatCompletionResponseFormat{
 			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
@@ -435,7 +468,7 @@ func extractEpisodes(client *openai.Client, messages []openai.ChatCompletionMess
 	return result.Episodes, nil
 }
 
-func createProjectStructure(projectName string, series *Series, chat *ChatLog, client *openai.Client, messages []openai.ChatCompletionMessage) error {
+func createProjectStructure(projectName string, series *Series, chat *ChatLog, client *openai.Client, apiConfig *APIConfig, messages []openai.ChatCompletionMessage) error {
 	Debug(nil, "Starting project structure creation")
 	Debugf(nil, "Project name: %s", projectName)
 
@@ -462,8 +495,8 @@ func createProjectStructure(projectName string, series *Series, chat *ChatLog, c
 	Debugf(nil, "Repository scan complete - found %d files, project type: %s", len(scanResult.Files), scanResult.ProjectType)
 
 	// Extract episodes using AI with repository context
-	Debug(nil, "Starting episode extraction with OpenAI")
-	episodes, err := extractEpisodes(client, messages, scanResult)
+	Debug(nil, "Starting episode extraction with chat completion API")
+	episodes, err := extractEpisodesWithConfig(client, apiConfig, messages, scanResult)
 	if err != nil {
 		return fmt.Errorf("failed to extract episodes: %w", err)
 	}

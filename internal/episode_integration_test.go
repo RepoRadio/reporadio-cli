@@ -59,7 +59,7 @@ func TestGenerateEpisodeTranscriptWithCommands(t *testing.T) {
 	}
 
 	// Generate transcript with nil client (testing mode)
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "")
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, DefaultAPIConfig(), []map[string]interface{}{}, podcastConfig, "")
 	if err != nil {
 		t.Fatalf("Failed to generate episode transcript: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestCommandExecutionTimeout(t *testing.T) {
 	}
 
 	// This should complete without hanging (command will timeout but generation continues)
-	err := generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "")
+	err := generateEpisodeTranscript(episode, 1, outputDir, nil, DefaultAPIConfig(), []map[string]interface{}{}, podcastConfig, "")
 	if err != nil {
 		t.Fatalf("Episode generation should not fail due to command timeout: %v", err)
 	}

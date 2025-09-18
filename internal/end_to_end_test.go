@@ -105,7 +105,7 @@ ls -la | head -5
 
 	// Generate the episode transcript
 	outputDir := filepath.Join(tempDir, "output")
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "30s")
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, DefaultAPIConfig(), []map[string]interface{}{}, podcastConfig, "30s")
 	if err != nil {
 		t.Fatalf("Failed to generate episode transcript: %v", err)
 	}

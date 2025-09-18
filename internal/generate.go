@@ -117,7 +117,7 @@ func appendToChatContext(podcastName string, episodeNum int, title, transcript s
 }
 
 // generateEpisodeTranscript generates a transcript for a single episode
-func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string, client *openai.Client, chatEntries []map[string]interface{}, podcastConfig *PodcastConfig, commandTimeoutFlag string) error {
+func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string, client *openai.Client, apiConfig *APIConfig, chatEntries []map[string]interface{}, podcastConfig *PodcastConfig, commandTimeoutFlag string) error {
 	Debug(nil, "Starting episode transcript generation")
 	Debugf(nil, "Episode %d: %s", episodeNum, episode.Title)
 
@@ -248,9 +248,9 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 		},
 	}
 
-	// Get response from OpenAI
-	Debug(nil, "Generating transcript with OpenAI")
-	transcript, err := getChatResponse(client, messages)
+	// Get response from OpenAI compatible API
+	Debug(nil, "Generating transcript with chat completion API")
+	transcript, err := getChatResponseWithConfig(client, apiConfig, messages)
 	if err != nil {
 		return fmt.Errorf("failed to generate transcript: %w", err)
 	}
@@ -269,7 +269,7 @@ func generateEpisodeTranscript(episode Episode, episodeNum int, outputDir string
 }
 
 // generatePodcastTranscripts generates transcripts and optionally audio for all episodes in a podcast config
-func generatePodcastTranscripts(podcastName string, config *PodcastConfig, client *openai.Client, generateAudio bool, commandTimeoutFlag string) error {
+func generatePodcastTranscripts(podcastName string, config *PodcastConfig, client *openai.Client, apiConfig *APIConfig, generateAudio bool, commandTimeoutFlag string) error {
 	Debug(nil, "Starting podcast transcript generation")
 	Debugf(nil, "Podcast: %s, Episodes: %d, Audio: %t", podcastName, len(config.Episodes), generateAudio)
 
@@ -306,7 +306,7 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 		}
 
 		// Generate transcript
-		transcriptErr := generateEpisodeTranscript(episode, episodeNum, outputDir, client, chatEntries, config, commandTimeoutFlag)
+		transcriptErr := generateEpisodeTranscript(episode, episodeNum, outputDir, client, apiConfig, chatEntries, config, commandTimeoutFlag)
 		if transcriptErr != nil {
 			// Handle transcript generation error gracefully
 			fmt.Printf("⚠ Failed to generate transcript for Episode %d: %v\n", episodeNum, transcriptErr)
@@ -336,7 +336,7 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 
 		// Generate episode summary
 		fmt.Printf("Generating summary for Episode %d...\n", episodeNum)
-		summary, summaryErr := generateEpisodeSummary(client, string(transcriptContent))
+		summary, summaryErr := generateEpisodeSummaryWithConfig(client, apiConfig, string(transcriptContent))
 		if summaryErr != nil {
 			fmt.Printf("⚠ Failed to generate summary for Episode %d: %v\n", episodeNum, summaryErr)
 			playlistEpisode.Summary = "Summary generation failed"
@@ -346,13 +346,13 @@ func generatePodcastTranscripts(podcastName string, config *PodcastConfig, clien
 		}
 
 		// Generate audio if requested and client is available
-		if generateAudio && client != nil {
+		if generateAudio && client != nil && apiConfig.SupportsTTS() {
 			fmt.Printf("Generating audio for Episode %d...\n", episodeNum)
 			Debug(nil, "Starting audio generation")
 
 			audioPath := filepath.Join(outputDir, fmt.Sprintf("ep%d.mp3", episodeNum))
 
-			err = generateEpisodeAudio(transcriptPath, audioPath, client)
+			err = generateEpisodeAudioWithConfig(transcriptPath, audioPath, client, apiConfig)
 			if err != nil {
 				fmt.Printf("⚠ Failed to generate audio for Episode %d: %v\n", episodeNum, err)
 				// Don't include audio file in playlist if generation failed
@@ -411,18 +411,23 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	// Get flags
 	generateAudio, _ := cmd.Flags().GetBool("audio")
 	commandTimeoutFlag, _ := cmd.Flags().GetString("command-timeout")
+	baseURL, _ := cmd.Flags().GetString("api-base-url")
+	apiKey, _ := cmd.Flags().GetString("api-key")
+	chatModel, _ := cmd.Flags().GetString("chat-model")
+	ttsModel, _ := cmd.Flags().GetString("tts-model")
+	ttsVoice, _ := cmd.Flags().GetString("tts-voice")
 
-	// Get OpenAI API key from environment variable
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("please set the OPENAI_API_KEY environment variable")
+	// Load API configuration
+	apiConfig, err := LoadAPIConfig(baseURL, apiKey, chatModel, ttsModel, ttsVoice)
+	if err != nil {
+		return fmt.Errorf("failed to load API configuration: %w", err)
 	}
 
-	// Create OpenAI client
-	client := openai.NewClient(apiKey)
+	// Create OpenAI-compatible client
+	client := apiConfig.NewClient()
 
 	// Generate transcripts (and optionally audio) for all episodes
-	return generatePodcastTranscripts(podcastName, config, client, generateAudio, commandTimeoutFlag)
+	return generatePodcastTranscripts(podcastName, config, client, apiConfig, generateAudio, commandTimeoutFlag)
 }
 
 // parseEpisodeNumbers parses a comma-separated list of episode numbers
@@ -467,7 +472,7 @@ func validateEpisodeExists(podcastName string, episodeNum int) error {
 }
 
 // regenerateAudioForEpisodes regenerates audio for specified episodes
-func regenerateAudioForEpisodes(podcastName string, episodes []int, client *openai.Client) error {
+func regenerateAudioForEpisodes(podcastName string, episodes []int, client *openai.Client, apiConfig *APIConfig) error {
 	outputDir := filepath.Join(".reporadio", podcastName, "episodes")
 
 	// Validate all episodes exist before starting
@@ -485,7 +490,7 @@ func regenerateAudioForEpisodes(podcastName string, episodes []int, client *open
 		transcriptPath := filepath.Join(outputDir, fmt.Sprintf("ep%d.md", episodeNum))
 		audioPath := filepath.Join(outputDir, fmt.Sprintf("ep%d.mp3", episodeNum))
 
-		err := generateEpisodeAudio(transcriptPath, audioPath, client)
+		err := generateEpisodeAudioWithConfig(transcriptPath, audioPath, client, apiConfig)
 		if err != nil {
 			return fmt.Errorf("failed to generate audio for episode %d: %w", episodeNum, err)
 		}
@@ -532,6 +537,24 @@ func runRegenerateAudio(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to retrieve 'episodes' flag: %w", err)
 	}
 
+	// Get API configuration flags
+	baseURL, _ := cmd.Flags().GetString("api-base-url")
+	apiKey, _ := cmd.Flags().GetString("api-key")
+	chatModel, _ := cmd.Flags().GetString("chat-model")
+	ttsModel, _ := cmd.Flags().GetString("tts-model")
+	ttsVoice, _ := cmd.Flags().GetString("tts-voice")
+
+	// Load API configuration
+	apiConfig, err := LoadAPIConfig(baseURL, apiKey, chatModel, ttsModel, ttsVoice)
+	if err != nil {
+		return fmt.Errorf("failed to load API configuration: %w", err)
+	}
+
+	// Check if TTS is supported
+	if !apiConfig.SupportsTTS() {
+		return fmt.Errorf("text-to-speech is not supported with the current API configuration (endpoint: %s)", apiConfig.BaseURL)
+	}
+
 	// Determine which episodes to regenerate
 	var episodes []int
 
@@ -560,17 +583,11 @@ func runRegenerateAudio(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Get OpenAI API key from environment variable
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("please set the OPENAI_API_KEY environment variable")
-	}
-
-	// Create OpenAI client
-	client := openai.NewClient(apiKey)
+	// Create OpenAI-compatible client
+	client := apiConfig.NewClient()
 
 	// Regenerate audio for specified episodes
-	return regenerateAudioForEpisodes(podcastName, episodes, client)
+	return regenerateAudioForEpisodes(podcastName, episodes, client, apiConfig)
 }
 
 func init() {
@@ -581,6 +598,20 @@ func init() {
 	generateCmd.Flags().Bool("audio", false, "Generate audio files in addition to transcripts")
 	generateCmd.Flags().String("command-timeout", "", "Timeout for command execution (e.g., '30s', '2m', or '120' for seconds)")
 
+	// Add API configuration flags for generate command
+	generateCmd.Flags().String("api-base-url", "", "Base URL for OpenAI-compatible API (env: OPENAI_BASE_URL)")
+	generateCmd.Flags().String("api-key", "", "API key for authentication (env: OPENAI_API_KEY)")
+	generateCmd.Flags().String("chat-model", "", "Model for chat completions (env: OPENAI_CHAT_MODEL)")
+	generateCmd.Flags().String("tts-model", "", "Model for text-to-speech (env: OPENAI_TTS_MODEL)")
+	generateCmd.Flags().String("tts-voice", "", "Voice for text-to-speech (env: OPENAI_TTS_VOICE)")
+
 	// Add flags for the regenerate-audio command
 	regenerateAudioCmd.Flags().String("episodes", "", "Comma-separated list of episode numbers (e.g., '1,3,5' or '2' for single episode)")
+
+	// Add API configuration flags for regenerate-audio command
+	regenerateAudioCmd.Flags().String("api-base-url", "", "Base URL for OpenAI-compatible API (env: OPENAI_BASE_URL)")
+	regenerateAudioCmd.Flags().String("api-key", "", "API key for authentication (env: OPENAI_API_KEY)")
+	regenerateAudioCmd.Flags().String("chat-model", "", "Model for chat completions (env: OPENAI_CHAT_MODEL)")
+	regenerateAudioCmd.Flags().String("tts-model", "", "Model for text-to-speech (env: OPENAI_TTS_MODEL)")
+	regenerateAudioCmd.Flags().String("tts-voice", "", "Voice for text-to-speech (env: OPENAI_TTS_VOICE)")
 }

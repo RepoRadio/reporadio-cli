@@ -32,10 +32,17 @@ type PlaylistRoot struct {
 	Playlist Playlist `json:"playlist"`
 }
 
-// generateEpisodeSummary generates a concise summary from the episode transcript
+// generateEpisodeSummary generates a concise summary from the episode transcript (legacy function)
 func generateEpisodeSummary(client *openai.Client, transcript string) (string, error) {
+	// Use default API config for backward compatibility
+	apiConfig := DefaultAPIConfig()
+	return generateEpisodeSummaryWithConfig(client, apiConfig, transcript)
+}
+
+// generateEpisodeSummaryWithConfig generates a concise summary from the episode transcript with API config
+func generateEpisodeSummaryWithConfig(client *openai.Client, apiConfig *APIConfig, transcript string) (string, error) {
 	if client == nil {
-		return "Summary unavailable (no OpenAI client)", nil
+		return "Summary unavailable (no API client)", nil
 	}
 
 	// Create a focused prompt for summarization
@@ -52,8 +59,8 @@ Summary:`, transcript)
 		},
 	}
 
-	// Get summary from OpenAI
-	summary, err := getChatResponse(client, messages)
+	// Get summary from chat completion API
+	summary, err := getChatResponseWithConfig(client, apiConfig, messages)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate episode summary: %w", err)
 	}

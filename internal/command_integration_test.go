@@ -76,7 +76,7 @@ func TestGenerateEpisodeWithCommands(t *testing.T) {
 	}
 
 	// Test with nil client (placeholder mode)
-	err = generateEpisodeTranscript(episode, 1, outputDir, nil, []map[string]interface{}{}, podcastConfig, "")
+	err = generateEpisodeTranscript(episode, 1, outputDir, nil, DefaultAPIConfig(), []map[string]interface{}{}, podcastConfig, "")
 	if err != nil {
 		t.Fatalf("Failed to generate episode transcript: %v", err)
 	}

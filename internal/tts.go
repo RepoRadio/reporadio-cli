@@ -9,17 +9,28 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-// convertTextToSpeech converts text to speech using OpenAI TTS
+// convertTextToSpeech converts text to speech using OpenAI TTS (legacy function)
 func convertTextToSpeech(client *openai.Client, text string, filename string) error {
+	// Use default API config for backward compatibility
+	apiConfig := DefaultAPIConfig()
+	return convertTextToSpeechWithConfig(client, apiConfig, text, filename)
+}
+
+// convertTextToSpeechWithConfig converts text to speech using configurable TTS API
+func convertTextToSpeechWithConfig(client *openai.Client, apiConfig *APIConfig, text string, filename string) error {
 	if client == nil {
-		return fmt.Errorf("OpenAI client is required for text-to-speech conversion")
+		return fmt.Errorf("API client is required for text-to-speech conversion")
+	}
+
+	if !apiConfig.SupportsTTS() {
+		return fmt.Errorf("text-to-speech is not supported with the current API configuration (endpoint: %s)", apiConfig.BaseURL)
 	}
 
 	// Create text-to-speech request
 	resp, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
-		Model:          openai.TTSModelGPT4oMini,
+		Model:          openai.SpeechModel(apiConfig.GetTTSModel()),
 		Input:          text,
-		Voice:          openai.VoiceAlloy,
+		Voice:          openai.SpeechVoice(apiConfig.GetTTSVoice()),
 		ResponseFormat: openai.SpeechResponseFormatMp3,
 		Speed:          1.0,
 	})
@@ -45,10 +56,21 @@ func convertTextToSpeech(client *openai.Client, text string, filename string) er
 	return nil
 }
 
-// generateEpisodeAudio generates audio for a single episode transcript
+// generateEpisodeAudio generates audio for a single episode transcript (legacy function)
 func generateEpisodeAudio(transcriptPath, audioPath string, client *openai.Client) error {
+	// Use default API config for backward compatibility
+	apiConfig := DefaultAPIConfig()
+	return generateEpisodeAudioWithConfig(transcriptPath, audioPath, client, apiConfig)
+}
+
+// generateEpisodeAudioWithConfig generates audio for a single episode transcript with API config
+func generateEpisodeAudioWithConfig(transcriptPath, audioPath string, client *openai.Client, apiConfig *APIConfig) error {
 	if client == nil {
-		return fmt.Errorf("OpenAI client is required for audio generation")
+		return fmt.Errorf("API client is required for audio generation")
+	}
+
+	if !apiConfig.SupportsTTS() {
+		return fmt.Errorf("text-to-speech is not supported with the current API configuration (endpoint: %s)", apiConfig.BaseURL)
 	}
 
 	// Read transcript content
@@ -58,5 +80,5 @@ func generateEpisodeAudio(transcriptPath, audioPath string, client *openai.Clien
 	}
 
 	// Convert text to speech
-	return convertTextToSpeech(client, string(content), audioPath)
+	return convertTextToSpeechWithConfig(client, apiConfig, string(content), audioPath)
 }
